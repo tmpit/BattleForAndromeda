@@ -618,13 +618,36 @@ var SRA = {};
 SRA.Action = function (target, key, fromValue, toValue, duration, rate) {
 	this._target = target;
 	this._key = key;
+
+	this._from = fromValue;
+	this._to = toValue;
 	this._step = (toValue - fromValue) / duration;
 
 	this.rate = rate || 1.0;
+	this._finished = false;
 }
 
-SRA.Action.prototype.step = function (delta) {
-	this._target[this._key] += this._step * (this.rate * delta);
+SRA.Action.prototype._step = function (delta) {
+	var value = this._target[this._key] + this._step * (this.rate * delta);
+
+	if (value > this._to) {
+		value = this._to;
+	}
+
+	this._target[this._key] = value;	
+}
+
+SRA.Action.prototype._begin = function () {
+	this._target[this._key] = this._from;
+}
+
+SRA.Action.prototype.end = function () {
+	this._target[this._key] = this._to;
+	this._finished = true;
+}
+
+SRA.Action.prototype.hasFinished = function () {
+	return this._finished;
 }
 
 SRA.Entity = function () {
@@ -788,8 +811,7 @@ SRA.Entity.prototype._sortChildrenByZOrder = function () {
 	});
 }
 
-SRA.Scene = function () {
-}
+SRA.Scene = function () {}
 
 SRA.Scene.prototype = new SRA.Entity();
 
