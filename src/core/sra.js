@@ -1,4 +1,4 @@
-// SRA - Sir Renders Alot / Simple Rendering Application
+// SRA - Simple Rendering Application
 
 // ----------------------------------------------------------------------------
 // --------------------------------- GEOMETRY ---------------------------------
