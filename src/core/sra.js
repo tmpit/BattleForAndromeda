@@ -650,6 +650,38 @@ SRA.Action.prototype.hasFinished = function () {
 	return this._finished;
 }
 
+SRA.ActionManager = function () {
+	this._actions = [];
+}
+
+SRA.ActionManager.prototype.addAction = function (action) {
+	this._actions.push(action);
+}
+
+SRA.ActionManager.prototype.removeAction = function (action) {
+	var index = this._actions.indexOf(action);
+
+	if (-1 == index) {
+		return false;
+	}
+
+	this._actions.splice(index, 1);
+	return true;
+}
+
+SRA.ActionManager.prototype._hit = function (delta) {
+	var length = this._actions.length;
+	for (var i = 0; i < length; i++) {
+		var action = this._actions[i];
+		action.step(delta);
+
+		if (action.hasFinished()) {
+			this.removeAction(action);
+			i--;	
+		}
+	}
+}
+
 SRA.Entity = function () {
 	this.tag = 0
 	this.context = {};
