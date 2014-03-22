@@ -533,7 +533,7 @@ Graphics.Canvas.prototype.getSize = function () {
 var Dispatch = {};
 
 Dispatch.RunLoop = function (tickrate, callback, context) {
-	this._tickrate = tickrate;
+	this._tickrate = tickrate || 0.0;
 	this._callback = callback;
 	this._running = false;
 	this._timer = null;
@@ -541,7 +541,7 @@ Dispatch.RunLoop = function (tickrate, callback, context) {
 }
 
 Dispatch.RunLoop.prototype.start = function () {
-	if (this._running || this._tickrate) {
+	if (this._running || !this._tickrate || !this._callback) {
 		return;
 	}
 
