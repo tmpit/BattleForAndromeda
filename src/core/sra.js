@@ -805,6 +805,14 @@ SRA.Controller = function (canvas, fps) {
 	this._paused = false;
 }
 
+SRA.Controller.prototype.setFrameRate = function (fps) {
+	this._runLoop.setTickRate(1000.0 / fps);
+}
+
+SRA.Controller.prototype.getFrameRate = function () {
+	return 1000.0 / this._runLoop.getTickRate();
+}
+
 SRA.Controller.prototype.pushScene = function (scene) {
 	if (!scene) {
 		return;
