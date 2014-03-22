@@ -541,7 +541,7 @@ Dispatch.RunLoop = function (tickrate, callback, context) {
 }
 
 Dispatch.RunLoop.prototype.start = function () {
-	if (this._running) {
+	if (this._running || this._tickrate) {
 		return;
 	}
 
@@ -560,6 +560,19 @@ Dispatch.RunLoop.prototype.stop = function () {
 
 Dispatch.RunLoop.prototype.isRunning = function () {
 	return this._running;
+}
+
+Dispatch.RunLoop.prototype.setTickRate = function (tickrate) {
+	this._tickrate = tickrate;
+
+	if (this._running) {
+		this.stop();
+		this.start();
+	}
+}
+
+Dispatch.RunLoop.prototype.getTickRate = function () {
+	return this._tickrate;
 }
 
 Dispatch.Scheduler = function () {
