@@ -855,6 +855,7 @@ SRA.Controller.getSharedInstance = function () {
 		controller.canvas = null;
 		controller.scheduler = new Dispatch.Scheduler();
 		controller._runLoop = new Dispatch.RunLoop(-1, SRA.Controller.prototype._mainLoop, controller);
+		controller._actionManager = new SRA.ActionManager();
 		controller._scenesStack = [];
 		controller._deltaTime = 0.0;
 		controller._lastDisplayTime = 0;
@@ -915,6 +916,7 @@ SRA.Controller.prototype._mainLoop = function (context) {
 	}
 
 	controller._calculateDeltaTime();
+	controller._actionManager._hit(controller._deltaTime);
 	controller.scheduler._hit(controller._deltaTime);
 	topScene._hit(controller.canvas.context);
 }
