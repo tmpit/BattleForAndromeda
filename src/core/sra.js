@@ -541,7 +541,7 @@ Dispatch.RunLoop = function (tickrate, callback, context) {
 }
 
 Dispatch.RunLoop.prototype.start = function () {
-	if (this._running || !this._tickrate || !this._callback) {
+	if (this._running || this._tickrate <= 0 || !this._callback) {
 		return;
 	}
 
@@ -793,16 +793,23 @@ SRA.Scene = function () {
 
 SRA.Scene.prototype = new SRA.Entity();
 
-SRA.Controller = function (canvas, fps) {
-	this.canvas = new Graphics.Canvas(canvas);
-	this.scheduler = new Dispatch.Scheduler();
+SRA.Controller = function () {}
 
-	this._runLoop = new Dispatch.RunLoop(1000.0 / fps, SRA.Controller.prototype._mainLoop, this);
-	this._scenesStack = [];
-	this._deltaTime = 0;
-	this._lastDisplayTime = 0;
+SRA.Controller.getSharedInstance = function () {
+	if (!SRA.Controller._sharedInstance) {
+		var controller = new SRA.Controller();
+		controller.canvas = null;
+		controller.scheduler = new Dispatch.Scheduler();
+		controller._runLoop = new Dispatch.RunLoop(-1, SRA.Controller.prototype._mainLoop, controller);
+		controller._scenesStack = [];
+		controller._deltaTime = 0.0;
+		controller._lastDisplayTime = 0;
+		controller._paused = false;
 
-	this._paused = false;
+		SRA.Controller._sharedInstance = controller;
+	}
+
+	return SRA.Controller._sharedInstance;
 }
 
 SRA.Controller.prototype.setFrameRate = function (fps) {
