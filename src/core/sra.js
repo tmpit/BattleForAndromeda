@@ -804,6 +804,14 @@ SRA.Controller.prototype.popScene = function () {
 	return this.scenesStack.pop();
 }
 
+SRA.Controller.prototype.getTopScene = function () {
+	if (!this._scenesStack.length) {
+		return null;
+	}
+
+	return this._scenesStack[this._scenesStack.length - 1];
+}
+
 SRA.Controller.prototype.pause = function () {
 	this._paused = true;
 }
@@ -815,8 +823,9 @@ SRA.Controller.prototype.run = function () {
 
 SRA.Controller.prototype._mainLoop = function (context) {
 	var controller = context;
+	var topScene = controller.getTopScene();
 
-	if (!controller._scenesStack.length || controller._paused) {
+	if (!topScene || controller._paused) {
 		controller._deltaTime = 0;
 		controller._lastDisplayTime = 0;
 		controller._runLoop.stop();
@@ -824,9 +833,7 @@ SRA.Controller.prototype._mainLoop = function (context) {
 	}
 
 	controller._calculateDeltaTime();
-
 	controller.scheduler._hit(controller._deltaTime);
-	var topScene = controller._scenesStack[controller._scenesStack.length - 1];
 	topScene._hit(controller.canvas.context);
 }
 
