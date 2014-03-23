@@ -623,7 +623,7 @@ SRA.BaseAction = {
 		this.rate = (!rate || rate <= 0.0 ? 1.0 : rate);
 	},
 
-	_begin: function () {
+	_begin: function () {		
 		this._elapsedTime = 0.0;
 		this._finished = false;
 		this.begin();
@@ -635,7 +635,14 @@ SRA.BaseAction = {
 
 	_step: function (delta) {
 		this._elapsedTime += delta;
-		var duration = this._duration / this.rate;
+		var duration = this._duration;
+
+		if (duration <= 0.0) {
+			this.step(1);
+			return;
+		}
+
+		duration /= this.rate;
 
 		if (this._elapsedTime > duration) {
 			this._elapsedTime = duration;
