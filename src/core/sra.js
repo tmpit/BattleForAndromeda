@@ -613,8 +613,8 @@ Dispatch.Scheduler.prototype._hit = function (delta) {
 var SRA = {};
 
 SRA.BaseAction = {
-	_init: function (target, duration, rate, delay, repeat) {
-		this._target = target;
+	_init: function (duration, rate, delay, repeat) {
+		this._target = null;
 		this._duration = duration;
 		this._delay = (!delay || delay < 0.0 ? 0.0 : delay);
 		this._finished = false;
@@ -677,8 +677,8 @@ SRA.BaseAction = {
 	}
 };
 
-SRA.MoveToAction = function (target, toPoint, duration, rate, delay, repeat) {
-	this._init(target, duration, rate, delay, repeat);
+SRA.MoveToAction = function (toPoint, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
 	this._to = toPoint.clone();
 }
 
@@ -694,8 +694,8 @@ SRA.MoveToAction.prototype.step = function (progress) {
 	this._target.rect.origin = this._from.plus(step);
 }
 
-SRA.MoveByAction = function (target, delta, duration, rate, delay, repeat) {
-	this._init(target, duration, rate, delay, repeat);
+SRA.MoveByAction = function (delta, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
 	this._delta = delta.clone();
 }
 
@@ -710,8 +710,8 @@ SRA.MoveByAction.prototype.step = function (progress) {
 	this._target.rect.origin = this._from.plus(step);
 }
 
-SRA.RotateToAction = function (target, angleRadians, duration, rate, delay, repeat) {
-	this._init(target, duration, rate, delay, repeat);
+SRA.RotateToAction = function (angleRadians, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
 	this._to = angleRadians;
 }
 
@@ -727,8 +727,8 @@ SRA.RotateToAction.prototype.step = function (progress) {
 	this._target.rotation = this._from + step;
 }
 
-SRA.RotateByAction = function (target, angleRadians, duration, rate, delay, repeat) {
-	this._init(target, duration, rate, delay, repeat);
+SRA.RotateByAction = function (angleRadians, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
 	this._delta = angleRadians;
 }
 
@@ -743,8 +743,8 @@ SRA.RotateByAction.prototype.step = function (progress) {
 	this._target.rotation = this._from + step;
 }
 
-SRA.ScaleToAction = function (target, scale, duration, rate, delay, repeat) {
-	this._init(target, duration, rate, delay, repeat);
+SRA.ScaleToAction = function (scale, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
 	this._to = scale.clone();
 }
 
@@ -760,8 +760,8 @@ SRA.ScaleToAction.prototype.step = function (progress) {
 	this._target.scale = this._from.plus(step);
 }
 
-SRA.ScaleByAction = function (target, scale, duration, rate, delay, repeat) {
-	this._init(target, duration, rate, delay, repeat);
+SRA.ScaleByAction = function (scale, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
 	this._delta = scale.clone();
 }
 
@@ -780,7 +780,12 @@ SRA.ActionManager = function () {
 	this._actions = [];
 }
 
-SRA.ActionManager.prototype.addAction = function (action) {
+SRA.ActionManager.prototype.addAction = function (action, target) {
+	if (!target) {
+		return;
+	}
+	
+	action._target = target;
 	action._begin();
 	this._actions.push(action);
 }
@@ -880,7 +885,7 @@ SRA.Entity.prototype.childWithTag = function (tag) {
 }
 
 SRA.Entity.prototype.addAction = function (action) {
-	SRA.Controller.getSharedInstance().getActionManager().addAction(action);
+	SRA.Controller.getSharedInstance().getActionManager().addAction(action, this);
 }
 
 SRA.Entity.prototype.draw = function (context) {
