@@ -84,12 +84,8 @@ Geometry.Vector2.prototype.clone = function () {
 	return new Geometry.Vector2(this.x, this.y);
 }
 
-Geometry.Vector2.prototype.equals = function (vector, precise) {
-	if (!precise) {
-		return this.x == vector.x && this.y == vector.y;
-	}
-
-	return Math.abs(this.x - vector.x) <= _PRECISION && Math.abs(this.y - vector.y) <= _PRECISION;
+Geometry.Vector2.prototype.equals = function (vector) {	
+	return Math.abs(this.x - vector.x) <= Geometry._PRECISION && Math.abs(this.y - vector.y) <= Geometry._PRECISION;
 }
 
 Geometry.Vector2.prototype.toString = function () {
@@ -107,7 +103,7 @@ Geometry.Vector2.prototype.isOppositeTo = function (vector) {
 		return false;
 	}
 
-	return Math.abs(angle - Math.PI) <= _PRECISION;
+	return Math.abs(angle - Math.PI) <= Geometry._PRECISION;
 }
 
 Geometry.Vector2.prototype.isParallelTo = function (vector) {
@@ -117,12 +113,12 @@ Geometry.Vector2.prototype.isParallelTo = function (vector) {
 		return false;
 	}
 
-	return angle <= _PRECISION;
+	return angle <= Geometry._PRECISION;
 }
 
 Geometry.Vector2.prototype.isPerpendicularTo = function (vector) {
 	var dot = this.dot(vector);
-	return Math.abs(dot) <= _PRECISION;	
+	return Math.abs(dot) <= Geometry._PRECISION;	
 }
 
 Geometry.Vector2.prototype.map = function (func) {
@@ -294,16 +290,17 @@ Geometry.Matrix3.prototype.element = function(i, j) {
 Geometry.Matrix3.prototype.equals = function (matrix) {
 	var m1 = this.elements;
 	var m2 = matrix.elements;
+	var p = Geometry._PRECISION;
 
-	return 	Math.abs(m1[0][0] - m2[0][0]) <= _PRECISION &&
-			Math.abs(m1[0][1] - m2[0][1]) <= _PRECISION &&
-			Math.abs(m1[0][2] - m2[0][2]) <= _PRECISION &&
-			Math.abs(m1[1][0] - m2[1][0]) <= _PRECISION &&
-			Math.abs(m1[1][1] - m2[1][1]) <= _PRECISION &&
-			Math.abs(m1[1][2] - m2[1][2]) <= _PRECISION &&
-			Math.abs(m1[2][0] - m2[2][0]) <= _PRECISION &&
-			Math.abs(m1[2][1] - m2[2][1]) <= _PRECISION &&
-			Math.abs(m1[2][2] - m2[2][2]) <= _PRECISION;
+	return 	Math.abs(m1[0][0] - m2[0][0]) <= p &&
+			Math.abs(m1[0][1] - m2[0][1]) <= p &&
+			Math.abs(m1[0][2] - m2[0][2]) <= p &&
+			Math.abs(m1[1][0] - m2[1][0]) <= p &&
+			Math.abs(m1[1][1] - m2[1][1]) <= p &&
+			Math.abs(m1[1][2] - m2[1][2]) <= p &&
+			Math.abs(m1[2][0] - m2[2][0]) <= p &&
+			Math.abs(m1[2][1] - m2[2][1]) <= p &&
+			Math.abs(m1[2][2] - m2[2][2]) <= p;
 }
 
 Geometry.Matrix3.prototype.map = function(func) {
@@ -614,40 +611,134 @@ Dispatch.Scheduler.prototype._hit = function (delta) {
 // ----------------------------------- SRA ------------------------------------
 // ----------------------------------------------------------------------------
 var SRA = {};
-// this should have delay and sub actions
-SRA.Action = function (target, key, fromValue, toValue, duration, rate) {
-	this._target = target;
-	this._key = key;
 
-	this._from = fromValue;
-	this._to = toValue;
-	this._step = (toValue - fromValue) / duration;
+SRA.BaseAction = {
+	init: function (target, duration, rate, delay) {
+		this._target = target;
+		this._duration = duration;
+		this._delay = (!delay || delay < 0.0 ? 0.0 : delay);
+		this._finished = false;
+		this._elapsedTime = 0.0;
 
-	this.rate = rate || 1.0;
-	this._finished = false;
-}
+		this.rate = (!rate || rate <= 0.0 ? 1.0 : rate);
+	},
 
-SRA.Action.prototype._step = function (delta) {
-	var value = this._target[this._key] + this._step * (this.rate * delta);
+	_begin: function () {
+		this._elapsedTime = 0.0;
+		this._finished = false;
+		this.begin();
+	},
 
-	if (value > this._to) {
-		value = this._to;
+	begin: function () {
+		// To be overridden
+	},
+
+	_step: function (delta) {
+		this._elapsedTime += delta;
+		var duration = this._duration / this.rate;
+
+		if (this._elapsedTime > duration) {
+			this._elapsedTime = duration;
+		}
+		
+		this.step(this._elapsedTime / duration);	
+	},
+
+	step: function (progress) {
+		// To be overridden
+	},
+
+	end: function (interrupt) {
+		this._finished = true;
+	},
+
+	hasFinished: function () {
+		return this._finished || this._elapsedTime >= this._duration / this.rate;
 	}
+};
 
-	this._target[this._key] = value;	
+SRA.MoveToAction = function (target, toPoint, duration, rate, delay) {
+	this.init(target, duration, rate, delay);
+
+	this._from = target.rect.origin.clone();
+	this._delta = toPoint.minus(target.rect.origin);
 }
 
-SRA.Action.prototype._begin = function () {
-	this._target[this._key] = this._from;
+SRA.MoveToAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.MoveToAction.prototype.step = function (progress) {
+	var step = this._delta.multiply(progress);
+	this._target.rect.origin = this._from.plus(step);
 }
 
-SRA.Action.prototype.end = function () {
-	this._target[this._key] = this._to;
-	this._finished = true;
+SRA.MoveByAction = function (target, delta, duration, rate, delay) {
+	this.init(target, duration, rate, delay);
+
+	this._from = target.rect.origin.clone();
+	this._delta = delta.clone();
 }
 
-SRA.Action.prototype.hasFinished = function () {
-	return this._finished;
+SRA.MoveByAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.MoveByAction.prototype.step = function (progress) {
+	var step = this._delta.multiply(progress);
+	this._target.rect.origin = this._from.plus(step);	
+}
+
+SRA.RotateToAction = function (target, angleRadians, duration, rate, delay) {
+	this.init(target, duration, rate, delay);
+
+	this._from = target.rotation;
+	this._delta = angleRadians - target.rotation;
+}
+
+SRA.RotateToAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.RotateToAction.prototype.step = function (progress) {
+	var step = this._delta * progress;
+	this._target.rotation = this._from + step;
+}
+
+SRA.RotateByAction = function (target, angleRadians, duration, rate, delay) {
+	this.init(target, duration, rate, delay);
+
+	this._from = target.rotation;
+	this._delta = angleRadians;
+}
+
+SRA.RotateByAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.RotateByAction.prototype.step = function (progress) {
+	var step = this._delta * progress;
+	this._target.rotation = this._from + step;
+}
+
+SRA.ScaleToAction = function (target, scale, duration, rate, delay) {
+	this.init(target, duration, rate, delay);
+
+	this._from = target.scale.clone();
+	this._delta = scale.minus(target.scale);
+}
+
+SRA.ScaleToAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.ScaleToAction.prototype.step = function (progress) {
+	var step = this._delta.multiply(progress);
+	this._target.scale = this._from.plus(step);
+}
+
+SRA.ScaleByAction = function (target, scale, duration, rate, delay) {
+	this.init(target, duration, rate, delay);
+
+	this._from = target.scale.clone();
+	this._delta = scale.clone();
+}
+
+SRA.ScaleByAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.ScaleByAction.prototype.step = function (progress) {
+	var step = this._delta.multiply(progress);
+	this._target.scale = this._from.plus(step);
 }
 
 SRA.ActionManager = function () {
@@ -655,6 +746,7 @@ SRA.ActionManager = function () {
 }
 
 SRA.ActionManager.prototype.addAction = function (action) {
+	action._begin();
 	this._actions.push(action);
 }
 
@@ -671,13 +763,15 @@ SRA.ActionManager.prototype.removeAction = function (action) {
 
 SRA.ActionManager.prototype._hit = function (delta) {
 	var length = this._actions.length;
+
 	for (var i = 0; i < length; i++) {
 		var action = this._actions[i];
-		action.step(delta);
+		action._step(delta);
 
 		if (action.hasFinished()) {
 			this.removeAction(action);
-			i--;	
+			i--;
+			length--;
 		}
 	}
 }
@@ -747,7 +841,7 @@ SRA.Entity.prototype.childWithTag = function (tag) {
 }
 
 SRA.Entity.prototype.addAction = function (action) {
-
+	SRA.Controller.getSharedInstance().getActionManager().addAction(action);
 }
 
 SRA.Entity.prototype.draw = function (context) {
@@ -893,6 +987,10 @@ SRA.Controller.prototype.getTopScene = function () {
 	}
 
 	return this._scenesStack[this._scenesStack.length - 1];
+}
+
+SRA.Controller.prototype.getActionManager = function () {
+	return this._actionManager;
 }
 
 SRA.Controller.prototype.pause = function () {
