@@ -13,75 +13,26 @@
 			mainScene.backgroundColor = Graphics.Color.Magenta;
 			mainScene.rect.size = controller.canvas.getSize();
 			controller.pushScene(mainScene);
-			controller.run();
+			controller.run();			
 
 			var node = new SRA.Entity();
 			node.backgroundColor = Graphics.Color.Yellow;
 			node.rect.origin.x = 100.0;
-			node.rect.origin.y = 150.0;
+			node.rect.origin.y = 100.0;
 			node.rect.size.width = 100.0;
 			node.rect.size.height = 100.0;
 			node.zOrder = 1;
-			node._up = true;
-
-			controller.scheduler.schedule(node, function (delta) {
-				this.rotation += Geometry.degreesToRadians(2.0);
-
-				if (this._up) {
-					this.scale.x += 0.02;
-					this.scale.y += 0.02;
-				} else {
-					this.scale.x -= 0.02;
-					this.scale.y -= 0.02;
-				}
-
-				if (this.scale.x > 1.5) {
-					this._up = false;
-				} else if (this.scale.x < 0.5) {
-					this._up = true;
-				}
-			});
-
-			var n2 = new SRA.Entity();
-			n2.backgroundColor = Graphics.Color.Green;
-			n2.rect.origin.x = 180.0;
-			n2.rect.origin.y = 150.0;
-			n2.rect.size.width = 80.0;
-			n2.rect.size.height = 80.0;
-			n2.anchor.x = 1.0;
-			n2.anchor.y = 1.0;
-			n2._up = false;
-
-			controller.scheduler.schedule(n2, function (delta) {
-				this.rotation -= Geometry.degreesToRadians(3.0);
-
-				if (this._up) {
-					this.scale.x += 0.02;
-					this.scale.y += 0.02;
-				} else {
-					this.scale.x -= 0.02;
-					this.scale.y -= 0.02;
-				}
-
-				if (this.scale.x > 1.25) {
-					this._up = false;
-				} else if (this.scale.x < 0.75) {
-					this._up = true;
-				}
-			});
-
+			node.scale = new Geometry.Vector2(2.0, 1.0);
 			mainScene.addChild(node);
-			mainScene.addChild(n2);
 
-			setTimeout(function () {
-				controller.scheduler.unschedule(node);
-				setTimeout(function () {
-					controller.setFrameRate(30);
-					setTimeout(function () {
-						controller.pause();
-					}, 4000);					
-				}, 2000);
-			}, 5000);
+			// var action = new SRA.MoveByAction(node, new Geometry.Vector2(200.0, 0.0), 1.0, 1.0, 0.0);
+			// node.addAction(action);
+
+			// var action = new SRA.RotateToAction(node, Geometry.degreesToRadians(-90.0), 1.0, 0.5, 0.0);
+			// node.addAction(action);
+
+			// var action = new SRA.ScaleByAction(node, new Geometry.Vector2(-0.5, -0.5), 1.0, 1.0, 0.0);
+			// node.addAction(action);
 		}
 	</script>
 </head>
