@@ -619,16 +619,26 @@ SRA.BaseAction = {
 		this._delay = (!delay || delay < 0.0 ? 0.0 : delay);
 		this._finished = false;
 		this._elapsedTime = -this._delay;
-		this._iterations = 1 + (!repeat || repeat < 0 ? 0 : repeat);
+		this._infinite = repeat < 0;
 
-		this.rate = (!rate || rate <= 0.0 ? 1.0 : rate);
+		var iterations = 0;
+
+		if (!this._infinite) {
+			iterations = 1 + (repeat || 0);
+		}
+
+		this._iterations = iterations;
+		this.rate = rate || 1.0;
 	},
 
 	_begin: function () {		
 		this._elapsedTime = 0.0;
 		this._finished = false;
 		this._elapsedTime = -this._delay;
-		this._iterations--;
+
+		if (!this._infinite) {
+			this._iterations--;
+		}
 
 		this.begin();
 	},
@@ -673,7 +683,7 @@ SRA.BaseAction = {
 	},
 
 	canRepeat: function () {
-		return !this._finished && this._iterations > 0;
+		return !this._finished && (this._infinite || this._iterations > 0);
 	}
 };
 
