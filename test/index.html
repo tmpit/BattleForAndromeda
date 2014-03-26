@@ -24,14 +24,17 @@
 			node.zOrder = 1;
 			mainScene.addChild(node);
 
-			var action = new SRA.MoveByAction(new Geometry.Vector2(50.0, 0.0), 1.0, 1.0, 0.2, 2);
-			node.addAction(action);
+			var action1 = new SRA.MoveByAction(new Geometry.Vector2(55.0, 0.0), 1.0, 1.0, 0.2, 2);
+			node.addAction(action1);
 
-			var action = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 1.0, 1.0, 0.2, 3);
-			node.addAction(action);
+			var action2 = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 1.0, 1.0, 0.2, 3);
+			node.addAction(action2);
 
-			var action = new SRA.ScaleByAction(new Geometry.Vector2(-0.2, -0.2), 1.0, 1.0, 0.2, 1);
-			node.addAction(action);
+			var action3 = new SRA.ScaleByAction(new Geometry.Vector2(-0.2, -0.2), 1.0, 1.0, 0.2, 1);
+			node.addAction(action3);
+
+			var action4 = new SRA.FadeByAction(-0.5, 3.0, 1.0, 0.2, 1);
+			node.addAction(action4);
 		}
 	</script>
 </head>
