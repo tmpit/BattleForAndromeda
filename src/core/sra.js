@@ -613,32 +613,17 @@ Dispatch.Scheduler.prototype._hit = function (delta) {
 var SRA = {};
 
 SRA.BaseAction = {
-	_init: function (duration, rate, delay, repeat) {
+	_init: function (duration, rate) {
 		this._target = null;
 		this._duration = duration;
-		this._delay = (!delay || delay < 0.0 ? 0.0 : delay);
 		this._finished = false;
-		this._elapsedTime = -this._delay;
-		this._infinite = repeat < 0;
-
-		var iterations = 0;
-
-		if (!this._infinite) {
-			iterations = 1 + (repeat || 0);
-		}
-
-		this._iterations = iterations;
+		this._elapsedTime = 0.0;
 		this.rate = rate || 1.0;
 	},
 
 	_begin: function () {		
 		this._elapsedTime = 0.0;
 		this._finished = false;
-		this._elapsedTime = -this._delay;
-
-		if (!this._infinite) {
-			this._iterations--;
-		}
 
 		this.begin();
 	},
@@ -649,16 +634,11 @@ SRA.BaseAction = {
 
 	_step: function (delta) {
 		this._elapsedTime += delta;
-
-		if (this._elapsedTime < 0.0) {
-			return;
-		}
-
 		var duration = this._duration;
 
 		if (duration <= 0.0) {
 			this.step(1);
-			return;
+			turn;
 		}
 
 		duration /= this.rate;
@@ -680,15 +660,11 @@ SRA.BaseAction = {
 
 	hasFinished: function () {
 		return this._finished || this._elapsedTime >= this._duration / this.rate;
-	},
-
-	canRepeat: function () {
-		return !this._finished && (this._infinite || this._iterations > 0);
 	}
 };
 
-SRA.MoveToAction = function (toPoint, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.MoveToAction = function (toPoint, duration, rate) {
+	this._init(duration, rate);
 	this._to = toPoint.clone();
 }
 
@@ -704,8 +680,8 @@ SRA.MoveToAction.prototype.step = function (progress) {
 	this._target.rect.origin = this._from.plus(step);
 }
 
-SRA.MoveByAction = function (delta, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.MoveByAction = function (delta, duration, rate) {
+	this._init(duration, rate);
 	this._delta = delta.clone();
 }
 
@@ -720,8 +696,8 @@ SRA.MoveByAction.prototype.step = function (progress) {
 	this._target.rect.origin = this._from.plus(step);
 }
 
-SRA.RotateToAction = function (angleRadians, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.RotateToAction = function (angleRadians, duration, rate) {
+	this._init(duration, rate);
 	this._to = angleRadians;
 }
 
@@ -737,8 +713,8 @@ SRA.RotateToAction.prototype.step = function (progress) {
 	this._target.rotation = this._from + step;
 }
 
-SRA.RotateByAction = function (angleRadians, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.RotateByAction = function (angleRadians, duration, rate) {
+	this._init(duration, rate);
 	this._delta = angleRadians;
 }
 
@@ -753,8 +729,8 @@ SRA.RotateByAction.prototype.step = function (progress) {
 	this._target.rotation = this._from + step;
 }
 
-SRA.ScaleToAction = function (scale, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.ScaleToAction = function (scale, duration, rate) {
+	this._init(duration, rate);
 	this._to = scale.clone();
 }
 
@@ -770,8 +746,8 @@ SRA.ScaleToAction.prototype.step = function (progress) {
 	this._target.scale = this._from.plus(step);
 }
 
-SRA.ScaleByAction = function (scale, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.ScaleByAction = function (scale, duration, rate) {
+	this._init(duration, rate);
 	this._delta = scale.clone();
 }
 
@@ -786,8 +762,8 @@ SRA.ScaleByAction.prototype.step = function (progress) {
 	this._target.scale = this._from.plus(step);
 }
 
-SRA.FadeToAction = function (value, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.FadeToAction = function (value, duration, rate) {
+	this._init(duration, rate);
 	this._to = value;
 }
 
@@ -803,8 +779,8 @@ SRA.FadeToAction.prototype.step = function (progress) {
 	this._target.opacity = this._from + step;
 }
 
-SRA.FadeByAction = function (delta, duration, rate, delay, repeat) {
-	this._init(duration, rate, delay, repeat);
+SRA.FadeByAction = function (delta, duration, rate) {
+	this._init(duration, rate);
 	this._delta = delta;
 }
 
@@ -816,7 +792,7 @@ SRA.FadeByAction.prototype.begin = function () {
 
 SRA.FadeByAction.prototype.step = function (progress) {
 	var step = this._delta * progress;
-	this._target.opacity = this._from + step;	
+	this._target.opacity = this._from + step;
 }
 
 SRA.ActionManager = function () {
@@ -852,13 +828,9 @@ SRA.ActionManager.prototype._hit = function (delta) {
 		action._step(delta);
 
 		if (action.hasFinished()) {
-			if (action.canRepeat()) {
-				action._begin();
-			} else {
-				this.removeAction(action);
-				i--;
-				length--;
-			}			
+			this.removeAction(action);
+			i--;
+			length--;		
 		}
 	}
 }
