@@ -786,6 +786,39 @@ SRA.ScaleByAction.prototype.step = function (progress) {
 	this._target.scale = this._from.plus(step);
 }
 
+SRA.FadeToAction = function (value, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
+	this._to = value;
+}
+
+SRA.FadeToAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.FadeToAction.prototype.begin = function () {
+	this._from = this._target.opacity;
+	this._delta = this._to - this._from;
+}
+
+SRA.FadeToAction.prototype.step = function (progress) {
+	var step = this._delta * progress;
+	this._target.opacity = this._from + step;
+}
+
+SRA.FadeByAction = function (delta, duration, rate, delay, repeat) {
+	this._init(duration, rate, delay, repeat);
+	this._delta = delta;
+}
+
+SRA.FadeByAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.FadeByAction.prototype.begin = function () {
+	this._from = this._target.opacity;
+}
+
+SRA.FadeByAction.prototype.step = function (progress) {
+	var step = this._delta * progress;
+	this._target.opacity = this._from + step;	
+}
+
 SRA.ActionManager = function () {
 	this._actions = [];
 }
@@ -900,6 +933,8 @@ SRA.Entity.prototype.addAction = function (action) {
 
 SRA.Entity.prototype.draw = function (context) {
 	context.save();
+
+	context.globalAlpha = this.opacity;
 
 	if (this.backgroundColor) {
 		context.fillStyle = this.backgroundColor;
