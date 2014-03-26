@@ -3,7 +3,9 @@
 	<title>test</title>
 	<script type="text/javascript" src="../src/core/sra.js"></script>
 	<script type="text/javascript">
-		window.onload = function () {
+		var cache = new Graphics.Image.Cache();
+
+		var startGame = function () {
 			var canvas = document.getElementsByTagName('canvas')[0];
 			var controller = SRA.Controller.getSharedInstance();
 			controller.canvas = new Graphics.Canvas(canvas);
@@ -16,12 +18,13 @@
 			controller.run();			
 
 			var node = new SRA.Entity();
-			node.backgroundColor = Graphics.Color.Yellow;
+			node.backgroundColor = null;
 			node.rect.origin.x = 100.0;
 			node.rect.origin.y = 100.0;
-			node.rect.size.width = 50.0;
-			node.rect.size.height = 50.0;
-			node.zOrder = 1;
+			node.rect.size.width = 27.0;
+			node.rect.size.height = 40.0;
+			node.rotation = Geometry.degreesToRadians(90.0);
+			node.sprite = cache.imageForKey('gordon_freeman.png');
 			mainScene.addChild(node);
 
 			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(250.0, 0.0), 2.0, 1.0);
@@ -39,6 +42,12 @@
 			var sequence = new SRA.ActionSequence(actions);
 			var repeat = new SRA.RepeatAction(sequence, -1);
 			node.addAction(repeat);
+		}
+
+		var loader = new Graphics.Image.Loader(['gordon_freeman.png'], cache, startGame);
+
+		window.onload = function () {
+			loader.start();
 		}
 	</script>
 </head>
