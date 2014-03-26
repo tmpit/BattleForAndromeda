@@ -1000,7 +1000,7 @@ SRA.Entity.prototype.draw = function (context) {
 }
 
 SRA.Entity.prototype._hit = function (context) {
-	if (!this.visible) {
+	if (!this.visible || this.opacity <= 0.0) {
 		return;
 	}
 
