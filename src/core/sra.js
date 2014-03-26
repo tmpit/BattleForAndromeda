@@ -432,7 +432,7 @@ var Graphics = {
 Graphics.Image = {};
 
 Graphics.Image.Cache = function (namespace) {
-	this.namespace = namespace;
+	this.namespace = namespace || 'DefaultNamespace';
 	this._images = {};
 }
 
@@ -494,7 +494,6 @@ Graphics.Image.Loader.prototype._onLoad = function () {
 	var loader = this.GILoader;
 	loader._processed++;
 	loader._loaded++;
-	console.log('caching - ' + this.GIPath + ' - ' + this);
 	loader._cache.cacheImage(this.GIPath, this);
 	loader._completeMaybe();
 	this.GILoader = this.GIPath = null;
@@ -1092,7 +1091,7 @@ SRA.Entity.prototype.draw = function (context) {
 	}
 
 	if (this.sprite) {
-		context.drawImage(this.sprite, this.rect.origin.x, this.rect.origin.y);
+		context.drawImage(this.sprite, 0.0, 0.0);
 	}
 
 	context.restore();
