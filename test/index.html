@@ -24,14 +24,16 @@
 			node.zOrder = 1;
 			mainScene.addChild(node);
 
-			var action1 = new SRA.MoveByAction(new Geometry.Vector2(40.0, 0.0), 1.0, 1.0);
-			var action2 = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 1.0, 1.0);
-			// var action3 = new SRA.ScaleByAction(new Geometry.Vector2(0.01, 1.0), 1.0, 1.0);
-			var group = new SRA.ActionGroup([action1, action2]);
-			var repeat = new SRA.RepeatAction(group, 2);
+			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(250.0, 0.0), 2.0, 1.0);
+			var moveDown = new SRA.MoveByAction(new Geometry.Vector2(0.0, 150.0), 2.0, 1.0);
+			var moveLeft = new SRA.MoveByAction(new Geometry.Vector2(-250.0, 0.0), 2.0, 1.0);
+			var moveUp = new SRA.MoveByAction(new Geometry.Vector2(0.0, -150.0), 2.0, 1.0);
+			var rotateRight = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 1.0, 1.0);
+			var delay = new SRA.DelayAction(0.2, 1.0);
+			var actions = [delay, moveRight, delay, rotateRight, delay, moveDown, delay, rotateRight, delay, moveLeft, delay, rotateRight, delay, moveUp, delay, rotateRight];
+			var sequence = new SRA.ActionSequence(actions);
+			var repeat = new SRA.RepeatAction(sequence, -1);
 			node.addAction(repeat);
-
-
 		}
 	</script>
 </head>
