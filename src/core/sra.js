@@ -621,7 +621,8 @@ SRA.BaseAction = {
 		this.rate = rate || 1.0;
 	},
 
-	_begin: function () {		
+	_begin: function (target) {
+		this._target = target;
 		this._elapsedTime = 0.0;
 		this._finished = false;
 
@@ -662,6 +663,85 @@ SRA.BaseAction = {
 		return this._finished || this._elapsedTime >= this._duration / this.rate;
 	}
 };
+
+SRA.DelayAction = function (duration, rate) {
+	this._init(duration, rate);
+}
+
+SRA.DelayAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.RepeatAction = function (innerAction, repeat) {
+	this._init(0.0, 1.0);
+
+	var infinite = (repeat && repeat < 0 ? true : false);
+	var iterations = 0;
+
+	if (!infinite) {
+		iterations = 1 + (!repeat || repeat < 0 ? 0 : repeat);
+	}
+	
+	this._iterations = iterations;
+	this._infinite = infinite;
+	this._innerAction = innerAction;
+}
+
+SRA.RepeatAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.RepeatAction.prototype._begin = function (target) {
+	this._target = target;
+	this._innerAction._begin(target);
+}
+
+SRA.RepeatAction.prototype._step = function (delta) {
+	this._innerAction._step(delta);
+
+	if (this._innerAction.hasFinished() && (this._iterations > 0 || this._infinite)) {
+		this._iterations--;
+		this._innerAction._begin(this._target);
+	}
+}
+
+SRA.RepeatAction.prototype.hasFinished = function () {
+	return this._iterations <= 0 && !this._infinite;
+}
+
+SRA.ActionGroup = function (actions) {
+	this._init(0.0, 1.0);
+	this._actions = actions;
+}
+
+SRA.ActionGroup.prototype = Object.create(SRA.BaseAction);
+
+SRA.ActionGroup.prototype._begin = function (target) {
+	this._target = target;
+	var actions = this._actions;
+	var length = actions.length;
+
+	for (var i = 0; i < length; i++) {
+		actions[i]._begin(target);
+	}
+}
+
+SRA.ActionGroup.prototype._step = function (delta) {
+	var actions = this._actions;
+	var length = actions.length;
+	var action;
+
+	for (var i = 0; i < length; i++) {
+		action = actions[i];
+		action._step(delta);
+
+		if (action.hasFinished()) {
+			actions.splice(i, 1);
+			length--;
+			i--;
+		}
+	}
+}
+
+SRA.ActionGroup.prototype.hasFinished = function () {
+	return !this._actions.length;
+}
 
 SRA.MoveToAction = function (toPoint, duration, rate) {
 	this._init(duration, rate);
@@ -804,8 +884,7 @@ SRA.ActionManager.prototype.addAction = function (action, target) {
 		return;
 	}
 	
-	action._target = target;
-	action._begin();
+	action._begin(target);
 	this._actions.push(action);
 }
 
