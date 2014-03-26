@@ -623,7 +623,7 @@ var SRA = {};
   * spline(x) => returns the easing value | x must be in [0, 1] range
   */
 SRA.TimingFunction = function (mX1, mY1, mX2, mY2) {
-	if (!(this instanceof TimingFunction)) return new TimingFunction(mX1, mY1, mX2, mY2);
+	if (!(this instanceof SRA.TimingFunction)) return new SRA.TimingFunction(mX1, mY1, mX2, mY2);
 
     // Validate arguments
     if (arguments.length !== 4) throw new Error("TimingFunction requires 4 arguments.");
@@ -670,11 +670,11 @@ SRA.TimingFunction = function (mX1, mY1, mX2, mY2) {
     return f;
 }
 
-SRA.TimingFunction.Ease = new TimingFunction(0.25, 0.1, 0.25, 1.0);
 SRA.TimingFunction.Linear = function (x) { return x; };
-SRA.TimingFunction.EaseIn = new TimingFunction(0.42, 0.0, 1.0, 1.0);
-SRA.TimingFunction.EaseOut = new TimingFunction(0.0, 0.0, 0.58, 1.0);
-SRA.TimingFunction.EaseInOut = new TimingFunction(0.42, 0.0, 0.58, 1.0);
+SRA.TimingFunction.Ease = new SRA.TimingFunction(0.25, 0.1, 0.25, 1.0);
+SRA.TimingFunction.EaseIn = new SRA.TimingFunction(0.42, 0.0, 1.0, 1.0);
+SRA.TimingFunction.EaseOut = new SRA.TimingFunction(0.0, 0.0, 0.58, 1.0);
+SRA.TimingFunction.EaseInOut = new SRA.TimingFunction(0.42, 0.0, 0.58, 1.0);
 
 SRA.BaseAction = {
 	_init: function (duration, rate) {
@@ -683,6 +683,11 @@ SRA.BaseAction = {
 		this._finished = false;
 		this._elapsedTime = 0.0;
 		this.rate = rate || 1.0;
+		this._timingFunction = SRA.TimingFunction.Linear;
+	},
+
+	setTimingFunction: function (timingFunction) {
+		this._timingFunction = timingFunction;
 	},
 
 	_begin: function (target) {
@@ -712,7 +717,7 @@ SRA.BaseAction = {
 			this._elapsedTime = duration;
 		}
 
-		this.step(this._elapsedTime / duration);	
+		this.step(this._timingFunction(this._elapsedTime / duration));	
 	},
 
 	step: function (progress) {
