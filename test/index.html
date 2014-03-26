@@ -25,10 +25,15 @@
 			mainScene.addChild(node);
 
 			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(250.0, 0.0), 2.0, 1.0);
+			moveRight.setTimingFunction(SRA.TimingFunction.EaseInOut);
 			var moveDown = new SRA.MoveByAction(new Geometry.Vector2(0.0, 150.0), 2.0, 1.0);
+			moveDown.setTimingFunction(SRA.TimingFunction.EaseInOut);
 			var moveLeft = new SRA.MoveByAction(new Geometry.Vector2(-250.0, 0.0), 2.0, 1.0);
+			moveLeft.setTimingFunction(SRA.TimingFunction.EaseInOut);
 			var moveUp = new SRA.MoveByAction(new Geometry.Vector2(0.0, -150.0), 2.0, 1.0);
-			var rotateRight = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 1.0, 1.0);
+			moveUp.setTimingFunction(SRA.TimingFunction.EaseInOut);
+			var rotateRight = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 1.2, 1.0);
+			rotateRight.setTimingFunction(SRA.TimingFunction.EaseInOut);
 			var delay = new SRA.DelayAction(0.2, 1.0);
 			var actions = [delay, moveRight, delay, rotateRight, delay, moveDown, delay, rotateRight, delay, moveLeft, delay, rotateRight, delay, moveUp, delay, rotateRight];
 			var sequence = new SRA.ActionSequence(actions);
