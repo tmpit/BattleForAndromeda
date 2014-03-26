@@ -655,7 +655,7 @@ SRA.BaseAction = {
 
 	},
 
-	end: function (interrupt) {
+	end: function () {
 		this._finished = true;
 	},
 
@@ -702,12 +702,12 @@ SRA.RepeatAction.prototype._step = function (delta) {
 }
 
 SRA.RepeatAction.prototype.hasFinished = function () {
-	return this._iterations <= 0 && !this._infinite;
+	return this._finished || (this._iterations <= 0 && !this._infinite);
 }
 
 SRA.ActionGroup = function (actions) {
 	this._init(0.0, 1.0);
-	this._actions = actions;
+	this._actions = actions.slice();
 	this._activeActions = null;
 }
 
@@ -741,7 +741,36 @@ SRA.ActionGroup.prototype._step = function (delta) {
 }
 
 SRA.ActionGroup.prototype.hasFinished = function () {
-	return !this._activeActions.length;
+	return !this._activeActions.length || this._finished;
+}
+
+SRA.ActionSequence = function (actions) {
+	this._init(0.0, 1.0);
+	this._actions = actions.slice();
+	this._currentActionIndex = 0;
+}
+
+SRA.ActionSequence.prototype = Object.create(SRA.BaseAction);
+
+SRA.ActionSequence.prototype._begin = function (target) {
+	this._target = target;
+	this._currentActionIndex = 0;
+	this._actions[0]._begin(target);
+}
+
+SRA.ActionSequence.prototype._step = function (delta) {
+	var action = this._actions[this._currentActionIndex];
+	action._step(delta);
+
+	if (action.hasFinished()) {
+		if (++this._currentActionIndex < this._actions.length) {
+			this._actions[this._currentActionIndex]._begin(this._target);
+		}
+	}
+}
+
+SRA.ActionSequence.prototype.hasFinished = function () {
+	return this._currentActionIndex >= this._actions.length || this._finished;
 }
 
 SRA.MoveToAction = function (toPoint, duration, rate) {
