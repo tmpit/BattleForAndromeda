@@ -417,19 +417,35 @@ Geometry.Rect.Zero = new Geometry.Rect(Geometry.Vector2.Zero, Geometry.Size.Zero
 // ----------------------------------------------------------------------------
 var Graphics = {
 	Color: {
-		White: "rgb(255, 255, 255)",
-		Black: "rgb(0, 0, 0)",
-		Clear: "rgba(0, 0, 0, 0.0)",
-		Red: "rgb(255, 0, 0)",
-		Green: "rgb(0, 255, 0)",
-		Blue: "rgb(0, 0, 255)",
-		Yellow: "rgb(255, 255, 0)",
-		Magenta: "rgb(255, 0, 255)",
-		Cyan: "rgb(0, 255, 255)"
+		White: 'rgb(255, 255, 255)',
+		Black: 'rgb(0, 0, 0)',
+		Gray: 'rgb(200, 200, 200)',
+		Clear: 'rgba(0, 0, 0, 0)',
+		Red: 'rgb(255, 0, 0)',
+		Green: 'rgb(0, 255, 0)',
+		Blue: 'rgb(0, 0, 255)',
+		Yellow: 'rgb(255, 255, 0)',
+		Magenta: 'rgb(255, 0, 255)',
+		Cyan: 'rgb(0, 255, 255)'
 	}
 };
 
-Graphics.Image = {};
+Graphics.Image = {
+	ContentMode: {
+		Center: 0,
+		Top: 1,
+		Left: 2,
+		Bottom: 3,
+		Right: 4,
+		TopLeft: 5,
+		TopRight: 6,
+		BottomLeft: 7,
+		BottomRight: 8,
+		ScaleFill: 9,
+		ScaleRatioFit: 10,
+		ScaleRationFill: 11
+	}
+};
 
 Graphics.Image.Cache = function (namespace) {
 	this.namespace = namespace || 'DefaultNamespace';
@@ -610,6 +626,173 @@ Dispatch.Scheduler.prototype._hit = function (delta) {
 // ----------------------------------- SRA ------------------------------------
 // ----------------------------------------------------------------------------
 var SRA = {};
+
+SRA.Entity = function () {
+	this.tag = 0
+	this.context = {};
+
+	this.rect = Geometry.Rect.Zero.clone();
+	this.rotation = 0.0;
+	this.scale = new Geometry.Vector2(1.0, 1.0);
+	this.anchor = new Geometry.Vector2(0.5, 0.5);
+	this.zOrder = 0;
+
+	this.sprite = null;
+	this.backgroundColor = Graphics.Color.White;
+
+	this.visible = true;
+	this.opacity = 1.0;
+	this.rigidBody = null;
+
+	this.children = [];
+	this._parent = null;
+	this._childrenNeedSorting = false;
+}
+
+SRA.Entity.prototype.getPosition = function () {
+	return new Geometry.Vector2(this.rect.origin.x + (this.rect.size.width * this.anchor.x), this.rect.origin.y + (this.rect.size.height * this.anchor.y));
+}
+
+SRA.Entity.prototype.setPosition = function (position) {
+	this.rect.origin.x = position.x - (this.rect.size.width * this.anchor.x);
+	this.rect.origin.y = position.y - (this.rect.size.height * this.anchor.y);
+}
+
+SRA.Entity.prototype.addChild = function (childEntity) {
+	this.children.push(childEntity);
+	childEntity._parent = this;
+	this._childrenNeedSorting = true;
+}
+
+SRA.Entity.prototype.removeFromParent = function () {
+	if (!this._parent) {
+		return;
+	}
+
+	var index = this._parent.children.indexOf(this);
+
+	if (-1 == index) {
+		return;
+	}
+
+	this._parent.children.splice(index, 1);
+	this._parent._childrenNeedSorting = true;
+	this._parent = null;
+}
+
+SRA.Entity.prototype.childWithTag = function (tag) {
+	for (var i = 0; i < this.children.length; i++) {
+		var child = this.children[i];
+		if (tag == child.tag) {
+			return child;
+		}
+	}
+
+	return null;
+}
+
+SRA.Entity.prototype.addAction = function (action) {
+	SRA.Controller.getSharedInstance().getActionManager().addAction(action, this);
+}
+
+SRA.Entity.prototype.draw = function (context) {
+	context.save();
+
+	context.globalAlpha = this.opacity;
+
+	if (this.backgroundColor) {
+		context.fillStyle = this.backgroundColor;
+		context.fillRect(0.0, 0.0, this.rect.size.width, this.rect.size.height);
+	}
+
+	if (this.sprite) {
+		context.drawImage(this.sprite, 0.0, 0.0);
+	}
+
+	context.restore();
+}
+
+SRA.Entity.prototype._hit = function (context) {
+	if (!this.visible || this.opacity <= 0.0) {
+		return;
+	}
+
+	this._applyTransform(context);
+
+	var childrenCount = this.children.length;
+
+	if (!childrenCount) {
+		this.draw(context);
+	} else {
+		if (this._childrenNeedSorting) {
+			this._childrenNeedSorting = false;
+			this._sortChildrenByZOrder();
+		}		
+
+		var i = 0;
+
+		for (; i < childrenCount; i++) {
+			var child = this.children[i];
+
+			if (child.zOrder < 0) {
+				child._hit(context);
+			} else {
+				break;
+			}
+		}
+
+		this.draw(context);
+
+		for (; i < childrenCount; i++) {
+			var child = this.children[i];
+			child._hit(context);
+		}
+	}
+
+	this._removeTransform(context);
+}
+
+SRA.Entity.prototype._applyTransform = function (context) {
+	context.save();
+
+	var rotate = this.rotation != 0.0;
+	var scale = this.scale.x != 1.0 || this.scale.y != 1.0;
+
+	if (rotate || scale) {
+		// Rotation and scaling needs to be done relative to the position
+		var position = this.getPosition();
+		var xDiff = position.x - this.rect.origin.x;
+		var yDiff = position.y - this.rect.origin.y;
+
+		context.translate(position.x, position.y);
+
+		if (rotate) {
+			context.rotate(this.rotation);	
+		}
+
+		if (scale) {
+			context.scale(this.scale.x, this.scale.y);
+		}
+				
+		context.translate(-xDiff, -yDiff);
+	} else {
+		context.translate(this.rect.origin.x, this.rect.origin.y);
+	}
+}
+
+SRA.Entity.prototype._removeTransform = function (context) {
+	context.restore();
+}
+
+SRA.Entity.prototype._sortChildrenByZOrder = function () {
+	this.children.sort(function (a, b) {
+		return a.zOrder - b.zOrder;
+	});
+}
+
+SRA.Scene = function () {}
+
+SRA.Scene.prototype = new SRA.Entity();
 
 /**
   * Credits for the following bezier easing implementation go to Gaëtan Renaudeau
@@ -1011,173 +1194,6 @@ SRA.ActionManager.prototype._hit = function (delta) {
 		}
 	}
 }
-
-SRA.Entity = function () {
-	this.tag = 0
-	this.context = {};
-
-	this.rect = Geometry.Rect.Zero.clone();
-	this.rotation = 0.0;
-	this.scale = new Geometry.Vector2(1.0, 1.0);
-	this.anchor = new Geometry.Vector2(0.5, 0.5);
-	this.zOrder = 0;
-
-	this.sprite = null;
-	this.backgroundColor = Graphics.Color.White;
-
-	this.visible = true;
-	this.opacity = 1.0;
-	this.rigidBody = null;
-
-	this.children = [];
-	this._parent = null;
-	this._childrenNeedSorting = false;
-}
-
-SRA.Entity.prototype.getPosition = function () {
-	return new Geometry.Vector2(this.rect.origin.x + (this.rect.size.width * this.anchor.x), this.rect.origin.y + (this.rect.size.height * this.anchor.y));
-}
-
-SRA.Entity.prototype.setPosition = function (position) {
-	this.rect.origin.x = position.x - (this.rect.size.width * this.anchor.x);
-	this.rect.origin.y = position.y - (this.rect.size.height * this.anchor.y);
-}
-
-SRA.Entity.prototype.addChild = function (childEntity) {
-	this.children.push(childEntity);
-	childEntity._parent = this;
-	this._childrenNeedSorting = true;
-}
-
-SRA.Entity.prototype.removeFromParent = function () {
-	if (!this._parent) {
-		return;
-	}
-
-	var index = this._parent.children.indexOf(this);
-
-	if (-1 == index) {
-		return;
-	}
-
-	this._parent.children.splice(index, 1);
-	this._parent._childrenNeedSorting = true;
-	this._parent = null;
-}
-
-SRA.Entity.prototype.childWithTag = function (tag) {
-	for (var i = 0; i < this.children.length; i++) {
-		var child = this.children[i];
-		if (tag == child.tag) {
-			return child;
-		}
-	}
-
-	return null;
-}
-
-SRA.Entity.prototype.addAction = function (action) {
-	SRA.Controller.getSharedInstance().getActionManager().addAction(action, this);
-}
-
-SRA.Entity.prototype.draw = function (context) {
-	context.save();
-
-	context.globalAlpha = this.opacity;
-
-	if (this.backgroundColor) {
-		context.fillStyle = this.backgroundColor;
-		context.fillRect(0.0, 0.0, this.rect.size.width, this.rect.size.height);
-	}
-
-	if (this.sprite) {
-		context.drawImage(this.sprite, 0.0, 0.0);
-	}
-
-	context.restore();
-}
-
-SRA.Entity.prototype._hit = function (context) {
-	if (!this.visible || this.opacity <= 0.0) {
-		return;
-	}
-
-	this._applyTransform(context);
-
-	var childrenCount = this.children.length;
-
-	if (!childrenCount) {
-		this.draw(context);
-	} else {
-		if (this._childrenNeedSorting) {
-			this._childrenNeedSorting = false;
-			this._sortChildrenByZOrder();
-		}		
-
-		var i = 0;
-
-		for (; i < childrenCount; i++) {
-			var child = this.children[i];
-
-			if (child.zOrder < 0) {
-				child._hit(context);
-			} else {
-				break;
-			}
-		}
-
-		this.draw(context);
-
-		for (; i < childrenCount; i++) {
-			var child = this.children[i];
-			child._hit(context);
-		}
-	}
-
-	this._removeTransform(context);
-}
-
-SRA.Entity.prototype._applyTransform = function (context) {
-	context.save();
-
-	var rotate = this.rotation != 0.0;
-	var scale = this.scale.x != 1.0 || this.scale.y != 1.0;
-
-	if (rotate || scale) {
-		// Rotation and scaling needs to be done relative to the position
-		var position = this.getPosition();
-		var xDiff = position.x - this.rect.origin.x;
-		var yDiff = position.y - this.rect.origin.y;
-
-		context.translate(position.x, position.y);
-
-		if (rotate) {
-			context.rotate(this.rotation);	
-		}
-
-		if (scale) {
-			context.scale(this.scale.x, this.scale.y);
-		}
-				
-		context.translate(-xDiff, -yDiff);
-	} else {
-		context.translate(this.rect.origin.x, this.rect.origin.y);
-	}
-}
-
-SRA.Entity.prototype._removeTransform = function (context) {
-	context.restore();
-}
-
-SRA.Entity.prototype._sortChildrenByZOrder = function () {
-	this.children.sort(function (a, b) {
-		return a.zOrder - b.zOrder;
-	});
-}
-
-SRA.Scene = function () {}
-
-SRA.Scene.prototype = new SRA.Entity();
 
 SRA.Controller = function () {}
 
