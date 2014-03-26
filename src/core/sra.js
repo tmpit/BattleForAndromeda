@@ -630,7 +630,7 @@ SRA.BaseAction = {
 	},
 
 	begin: function () {
-		// To be overridden
+
 	},
 
 	_step: function (delta) {
@@ -639,7 +639,7 @@ SRA.BaseAction = {
 
 		if (duration <= 0.0) {
 			this.step(1);
-			turn;
+			return;
 		}
 
 		duration /= this.rate;
@@ -652,7 +652,7 @@ SRA.BaseAction = {
 	},
 
 	step: function (progress) {
-		// To be overridden
+
 	},
 
 	end: function (interrupt) {
@@ -677,7 +677,7 @@ SRA.RepeatAction = function (innerAction, repeat) {
 	var iterations = 0;
 
 	if (!infinite) {
-		iterations = 1 + (!repeat || repeat < 0 ? 0 : repeat);
+		iterations = 1 + (repeat || 0);
 	}
 	
 	this._iterations = iterations;
@@ -708,13 +708,14 @@ SRA.RepeatAction.prototype.hasFinished = function () {
 SRA.ActionGroup = function (actions) {
 	this._init(0.0, 1.0);
 	this._actions = actions;
+	this._activeActions = null;
 }
 
 SRA.ActionGroup.prototype = Object.create(SRA.BaseAction);
 
 SRA.ActionGroup.prototype._begin = function (target) {
 	this._target = target;
-	var actions = this._actions;
+	var actions = this._activeActions = this._actions.slice();
 	var length = actions.length;
 
 	for (var i = 0; i < length; i++) {
@@ -723,7 +724,7 @@ SRA.ActionGroup.prototype._begin = function (target) {
 }
 
 SRA.ActionGroup.prototype._step = function (delta) {
-	var actions = this._actions;
+	var actions = this._activeActions;
 	var length = actions.length;
 	var action;
 
@@ -740,7 +741,7 @@ SRA.ActionGroup.prototype._step = function (delta) {
 }
 
 SRA.ActionGroup.prototype.hasFinished = function () {
-	return !this._actions.length;
+	return !this._activeActions.length;
 }
 
 SRA.MoveToAction = function (toPoint, duration, rate) {
