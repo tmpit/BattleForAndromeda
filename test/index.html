@@ -44,6 +44,10 @@
 			var sequence = new SRA.ActionSequence(actions);
 			var repeat = new SRA.RepeatAction(sequence, -1);
 			node.addAction(repeat);
+
+			window.getGameController = function () {
+				return controller;
+			}
 		}
 
 		var loader = new Graphics.Image.Loader(['gordon_freeman.png'], cache, startGame);
