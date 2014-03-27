@@ -427,20 +427,20 @@ var Graphics = {
 		Yellow: 'rgb(255, 255, 0)',
 		Magenta: 'rgb(255, 0, 255)',
 		Cyan: 'rgb(0, 255, 255)'
-	}
-};
+	},
 
-Graphics.Image = {
-	ContentMode: {
-		Center: 0,
-		Top: 1,
-		Left: 2,
-		Bottom: 3,
-		Right: 4,
-		TopLeft: 5,
-		TopRight: 6,
-		BottomLeft: 7,
-		BottomRight: 8
+	Image: {
+		ContentMode: {
+			Center: 0,
+			Top: 1,
+			Left: 2,
+			Bottom: 3,
+			Right: 4,
+			TopLeft: 5,
+			TopRight: 6,
+			BottomLeft: 7,
+			BottomRight: 8
+		}
 	}
 };
 
