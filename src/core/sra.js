@@ -440,10 +440,7 @@ Graphics.Image = {
 		TopLeft: 5,
 		TopRight: 6,
 		BottomLeft: 7,
-		BottomRight: 8,
-		ScaleFill: 9,
-		ScaleRatioFit: 10,
-		ScaleRationFill: 11
+		BottomRight: 8
 	}
 };
 
@@ -637,6 +634,7 @@ SRA.Entity = function () {
 	this.anchor = new Geometry.Vector2(0.5, 0.5);
 	this.zOrder = 0;
 
+	this.contentMode = Graphics.Image.ContentMode.Center;
 	this.sprite = null;
 	this.backgroundColor = Graphics.Color.White;
 
@@ -706,10 +704,191 @@ SRA.Entity.prototype.draw = function (context) {
 	}
 
 	if (this.sprite) {
-		context.drawImage(this.sprite, 0.0, 0.0);
+		this._drawSpriteRespectingContentMode(context);
 	}
 
 	context.restore();
+}
+
+SRA.Entity.prototype._drawSpriteRespectingContentMode = function (context) {
+	var w = this.rect.size.width;
+	var h = this.rect.size.height;
+	var iw = this.sprite.width;
+	var ih = this.sprite.height;
+	var minW = (w < iw ? w : iw);
+	var minH = (h < ih ? h : ih);
+	var clipW = iw > w;
+	var clipH = ih > h;
+
+	switch(this.contentMode) {
+		case Graphics.Image.ContentMode.Center:
+			if (clipW || clipH) {
+				var clipX, clipY, startX, startY;
+
+				if (clipW) {
+					clipX = (iw - w) / 2.0;
+					startX = 0.0;
+				} else {
+					clipX = 0.0;
+					startX = (w - iw) / 2.0;
+				}
+
+				if (clipH) {
+					clipY = (ih - h) / 2.0;
+					startY = 0.0;
+				} else {
+					clipY = 0.0;
+					startY = (h - ih) / 2.0;
+				}
+
+				context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+			} else {
+				context.drawImage(this.sprite, (w - iw) / 2.0, (h - ih) / 2.0);
+			}
+			break;
+
+		case Graphics.Image.ContentMode.Top:
+			if (clipW || clipH) {
+				var clipX, startX;
+
+				if (clipW) {
+					clipX = (iw - w) / 2.0;
+					startX = 0.0;
+				} else {
+					clipX = 0.0;
+					startX = (w - iw) / 2.0;
+				}
+
+				context.drawImage(this.sprite, clipX, 0.0, minW, minH, startX, 0.0, minW, minH);
+			} else {
+				context.drawImage(this.sprite, (w - iw) / 2.0, 0.0);
+			}
+			break;
+
+		case Graphics.Image.ContentMode.Left:
+			if (clipW || clipH) {
+				var clipY, startY;
+
+				if (clipH) {
+					clipY = (ih - h) / 2.0;
+					startY = 0.0;
+				} else {
+					clipY = 0.0;
+					startY = (h - ih) / 2.0;
+				}
+
+				context.drawImage(this.sprite, 0.0, clipY, minW, minH, 0.0, startY, minW, minH);
+			} else {
+				context.drawImage(this.sprite, 0.0, (h - ih) / 2.0);
+			}
+			break;
+
+		case Graphics.Image.ContentMode.Bottom:
+			if (clipW || clipH) {
+				var clipX, clipY, startX, startY;
+
+				if (clipW) {
+					clipX = (iw - w) / 2.0;
+					startX = 0.0;
+				} else {
+					clipX = 0.0;
+					startX = (w - iw) / 2.0;
+				}
+
+				if (clipH) {
+					clipY = ih - h;
+					startY = 0.0;
+				} else {
+					clipY = 0.0;
+					startY = h - ih;
+				}
+				
+				context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+			} else {
+				context.drawImage(this.sprite, (w - iw) / 2.0, h - ih);
+			}
+			break;
+
+		case Graphics.Image.ContentMode.Right:
+			if (clipW || clipH) {
+				var clipX, clipY, startX, startY;
+
+				if (clipW) {
+					clipX = iw - w;
+					startX = 0.0;
+				} else {
+					clipX = 0.0;
+					startX = w - iw;
+				}
+
+				if (clipH) {
+					clipY = (ih - h) / 2.0;
+					startY = 0.0;
+				} else {
+					clipY = 0.0;
+					startY = (h - ih) / 2.0;
+				}
+
+				context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+			} else {
+				context.drawImage(this.sprite, w - iw, (h - ih) / 2.0);
+			}
+			break;
+
+		case Graphics.Image.ContentMode.TopLeft:
+			context.drawImage(this.sprite, 0.0, 0.0, minW, minH, 0.0, 0.0, minW, minH);
+			break;
+
+		case Graphics.Image.ContentMode.TopRight:
+			var clipX, startX;
+
+			if (clipW) {
+				clipX = iw - w;
+				startX = 0.0;
+			} else {
+				clipX = 0.0;
+				startX = w - iw;
+			}
+
+			context.drawImage(this.sprite, clipX, 0.0, minW, minH, startX, 0.0, minW, minH);
+			break;
+
+		case Graphics.Image.ContentMode.BottomLeft:
+			var clipY, startY;
+
+			if (clipH) {
+				clipY = ih - h;
+				startY = 0.0;
+			} else {
+				clipY = 0.0;
+				startY = h - ih;
+			}
+
+			context.drawImage(this.sprite, 0.0, clipY, minW, minH, 0.0, startY, minW, minH);
+			break;
+
+		case Graphics.Image.ContentMode.BottomRight:
+			var clipX, clipY, startX, startY;
+
+			if (clipW) {
+				clipX = iw - w;
+				startX = 0.0;
+			} else {
+				clipX = 0.0;
+				startX = w - iw;
+			} 
+
+			if (clipH) {
+				clipY = ih - h;
+				startY = 0.0;
+			} else {
+				clipY = 0.0;
+				startY = h - ih;
+			}
+
+			context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+			break;
+	}
 }
 
 SRA.Entity.prototype._hit = function (context) {
