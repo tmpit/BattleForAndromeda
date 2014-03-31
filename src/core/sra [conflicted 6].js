@@ -589,7 +589,7 @@ Dispatch.Scheduler = function () {
 	this._actions = [];
 }
 
-Dispatch.Scheduler.prototype.schedule = function (target, action) {
+Dispatch.Scheduler.prototype.schedule= function (target, action) {
 	if (!target || !action) {
 		return;
 	}
@@ -1078,7 +1078,7 @@ SRA.BaseAction = {
 			this._elapsedTime = duration;
 		}
 
-		this.step(this._timingFunction(this._elapsedTime / duration));
+		this.step(this._timingFunction(this._elapsedTime / duration));	
 	},
 
 	step: function (progress) {
@@ -1348,7 +1348,7 @@ SRA.SpriteAction.prototype.begin = function () {
 
 SRA.SpriteAction.prototype.step = function (progress) {
 	var index = Math.floor(progress / this._threshold);
-	this._target.sprite = this._images[index];
+	this._target.sprite = 
 }
 
 SRA.ActionManager = function () {
