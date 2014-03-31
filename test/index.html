@@ -5,29 +5,18 @@
 	<script type="text/javascript">
 		var cache = new Graphics.Image.Cache();
 
-		var startGame = function () {
-			var canvas = document.getElementsByTagName('canvas')[0];
-			var controller = SRA.Controller.getSharedInstance();
-			controller.canvas = new Graphics.Canvas(canvas);
-			controller.setFrameRate(60);
-
-			var mainScene = new SRA.Scene();
-			mainScene.backgroundColor = Graphics.Color.Magenta;
-			mainScene.rect.size = controller.canvas.getSize();
-			controller.pushScene(mainScene);
-			controller.run();			
-
+		function addEntity(scene, origin) {
 			var node = new SRA.Entity();
 			node.backgroundColor = null;
-			node.rect.origin.x = 100.0;
-			node.rect.origin.y = 100.0;
+			node.rect.origin.x = origin.x;
+			node.rect.origin.y = origin.y;
 			node.rect.size.width = 27.0;
 			node.rect.size.height = 40.0;
 			node.anchor = new Geometry.Vector2(0.5, 0.75);
 			node.rotation = Geometry.degreesToRadians(90.0);
 			node.sprite = cache.imageForKey('gordon_freeman.png');
 			node.contentMode = Graphics.Image.ContentMode.Center;
-			mainScene.addChild(node);
+			scene.addChild(node);
 
 			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(250.0, 0.0), 2.0, 1.0);
 			moveRight.setTimingFunction(SRA.TimingFunction.EaseInOut);
@@ -44,13 +33,31 @@
 			var sequence = new SRA.ActionSequence(actions);
 			var repeat = new SRA.RepeatAction(sequence, -1);
 			node.addAction(repeat);
+		}
+
+		var startGame = function () {
+			var canvas = document.getElementsByTagName('canvas')[0];
+			var controller = SRA.Controller.getSharedInstance();
+			controller.canvas = new Graphics.Canvas(canvas);
+			controller.setFrameRate(60);
+
+			var mainScene = new SRA.Scene();
+			mainScene.backgroundColor = Graphics.Color.Magenta;
+			mainScene.rect.size = controller.canvas.getSize();
+			controller.pushScene(mainScene);
+			controller.run();
+
+			for (var i = 0; i < 1; i++) {
+				addEntity(mainScene, new Geometry.Vector2(100.0, 100.0));
+			}
 
 			window.getGameController = function () {
 				return controller;
 			}
 		}
 
-		var loader = new Graphics.Image.Loader(['gordon_freeman.png'], cache, startGame);
+		var imagePaths = ['gordon_freeman.png', 'h_gray.png', 'h_white.png', 'h_red.png', 'h_blue.png'];
+		var loader = new Graphics.Image.Loader(imagePaths, cache, startGame);
 
 		window.onload = function () {
 			loader.start();
@@ -58,7 +65,7 @@
 	</script>
 </head>
 <body>
-	<canvas width="640" height="480">
+	<canvas width="600" height="400">
 	</canvas>
 </body>
 </html>
