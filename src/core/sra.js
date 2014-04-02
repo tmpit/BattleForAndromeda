@@ -1106,6 +1106,14 @@ SRA.BaseAction = {
 
 	hasFinished: function () {
 		return this._finished || this._elapsedTime >= this._duration / this.rate;
+	},
+
+	pause: function () {
+		this._active = false;
+	},
+
+	resume: function () {
+		this._active = true;
 	}
 };
 
