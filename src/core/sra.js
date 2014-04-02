@@ -1041,10 +1041,12 @@ SRA.BaseAction = {
 	_init: function (duration, rate) {
 		this._target = null;
 		this._duration = duration;
-		this._finished = false;
 		this._elapsedTime = 0.0;
-		this.rate = rate || 1.0;
+		this.rate = rate || 1.0;	
 		this._timingFunction = SRA.TimingFunction.Linear;
+		this._jumpToEnd = false;
+		this._active = true;
+		this._finished = false;
 	},
 
 	setTimingFunction: function (timingFunction) {
@@ -1055,6 +1057,9 @@ SRA.BaseAction = {
 		this._target = target;
 		this._elapsedTime = 0.0;
 		this._finished = false;
+		this._jumpToEnd = false;
+		this._active = true;
+		this._finished = false;
 
 		this.begin();
 	},
@@ -1064,6 +1069,10 @@ SRA.BaseAction = {
 	},
 
 	_step: function (delta) {
+		if (!this._active) {
+			return;
+		}
+
 		this._elapsedTime += delta;
 		var duration = this._duration;
 
@@ -1074,7 +1083,7 @@ SRA.BaseAction = {
 
 		duration /= this.rate;
 
-		if (this._elapsedTime > duration) {
+		if (this._elapsedTime > duration || this._jumpToEnd) {
 			this._elapsedTime = duration;
 		}
 
@@ -1085,7 +1094,13 @@ SRA.BaseAction = {
 
 	},
 
-	end: function () {
+	end: function (interrupt) {
+		if (interrupt) {
+			this._active = false;
+		} else {
+			this._jumpToEnd = true;
+		}
+		
 		this._finished = true;
 	},
 
