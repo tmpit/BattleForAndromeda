@@ -81,11 +81,12 @@
 			node.contentMode = Graphics.Image.ContentMode.Center;
 			scene.addChild(node);
 
-			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(250.0, 0.0), 2.0, 1.0);
-			node.addAction(moveRight);
+			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(50.0, 0.0), 2.0, 1.0);
+			var action = new SRA.RepeatAction(moveRight, -1);
+			node.addAction(action);
 
 			setTimeout(function () {
-				moveRight.end(true);
+				action.end(false);
 			}, 1000);
 		}
 
@@ -105,7 +106,7 @@
 				return controller;
 			}
 
-			testActionPauseResume();
+			testActionInterrupt();
 		}
 
 		var imagePaths = ['gordon_freeman.png', 'h_gray.png', 'h_white.png', 'h_red.png', 'h_blue.png'];
