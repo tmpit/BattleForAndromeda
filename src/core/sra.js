@@ -1150,6 +1150,26 @@ SRA.RepeatAction.prototype._step = function (delta) {
 		return;
 	}
 
+	if (this._jumpToEnd) {
+		var action = this._innerAction;
+		action.end(false);
+		action._step(0.0);
+
+		if (!this._infinite) {
+			var iterations = this._iterations - 1;
+			var target = this._target;
+
+			while (iterations > 0) {
+				action._begin(target);
+				action.end(false);
+				action._step(0.0);
+				iterations--;
+			}
+		}
+
+		return;
+	}
+
 	this._innerAction._step(delta);
 
 	if (this._innerAction.hasFinished() && (this._iterations > 0 || this._infinite)) {
@@ -1184,7 +1204,7 @@ SRA.ActionGroup.prototype._step = function (delta) {
 	if (!this._active) {
 		return;
 	}
-	
+
 	var actions = this._activeActions;
 	var length = actions.length;
 	var action;
