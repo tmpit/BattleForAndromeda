@@ -1122,7 +1122,7 @@ SRA.DelayAction = function (duration, rate) {
 }
 
 SRA.DelayAction.prototype = Object.create(SRA.BaseAction);
-
+// TODO: implement inactive state and end in complex actions
 SRA.RepeatAction = function (innerAction, repeat) {
 	this._init(0.0, 1.0);
 
@@ -1146,6 +1146,10 @@ SRA.RepeatAction.prototype._begin = function (target) {
 }
 
 SRA.RepeatAction.prototype._step = function (delta) {
+	if (!this._active) {
+		return;
+	}
+
 	this._innerAction._step(delta);
 
 	if (this._innerAction.hasFinished() && (this._iterations > 0 || this._infinite)) {
@@ -1177,6 +1181,10 @@ SRA.ActionGroup.prototype._begin = function (target) {
 }
 
 SRA.ActionGroup.prototype._step = function (delta) {
+	if (!this._active) {
+		return;
+	}
+	
 	var actions = this._activeActions;
 	var length = actions.length;
 	var action;
@@ -1212,6 +1220,10 @@ SRA.ActionSequence.prototype._begin = function (target) {
 }
 
 SRA.ActionSequence.prototype._step = function (delta) {
+	if (!this._active) {
+		return;
+	}
+
 	var action = this._actions[this._currentActionIndex];
 	action._step(delta);
 
