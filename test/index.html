@@ -39,6 +39,34 @@
 			}
 		}
 
+		function testActionPauseResume() {
+			var scene = getGameController().getTopScene();
+
+			var node = new SRA.Entity();
+			node.backgroundColor = null;
+			node.rect.origin.x = 100.0;
+			node.rect.origin.y = 100.0;
+			node.rect.size.width = 27.0;
+			node.rect.size.height = 40.0;
+			node.anchor = new Geometry.Vector2(0.5, 0.75);
+			node.rotation = Geometry.degreesToRadians(90.0);
+			node.sprite = cache.imageForKey('gordon_freeman.png');
+			node.contentMode = Graphics.Image.ContentMode.Center;
+			scene.addChild(node);
+
+			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(100.0, 0.0), 2.0, 1.0);
+			var moveDown = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 2.0, 1.0);
+			var action = new SRA.ActionSequence([moveRight, moveDown]);
+			node.addAction(action);
+
+			setTimeout(function () {
+				action.pause();
+				setTimeout(function () {
+					action.resume();
+				}, 1000);
+			}, 2000);
+		}
+
 		function testActionInterrupt() {
 			var scene = getGameController().getTopScene();
 
@@ -77,7 +105,7 @@
 				return controller;
 			}
 
-			testActionInterrupt();
+			testActionPauseResume();
 		}
 
 		var imagePaths = ['gordon_freeman.png', 'h_gray.png', 'h_white.png', 'h_red.png', 'h_blue.png'];
