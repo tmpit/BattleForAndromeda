@@ -83,7 +83,7 @@
 
 			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(50.0, 0.0), 2.0, 1.0);
 			var rotate = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 3.0, 1.0);
-			var action = new SRA.ActionGroup([moveRight, rotate]);
+			var action = new SRA.ActionSequence([moveRight, rotate]);
 			node.addAction(action);
 
 			setTimeout(function () {
