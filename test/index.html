@@ -82,7 +82,8 @@
 			scene.addChild(node);
 
 			var moveRight = new SRA.MoveByAction(new Geometry.Vector2(50.0, 0.0), 2.0, 1.0);
-			var action = new SRA.RepeatAction(moveRight, -1);
+			var rotate = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 3.0, 1.0);
+			var action = new SRA.ActionGroup([moveRight, rotate]);
 			node.addAction(action);
 
 			setTimeout(function () {
