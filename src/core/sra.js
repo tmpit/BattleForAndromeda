@@ -1166,15 +1166,13 @@ SRA.RepeatAction.prototype._step = function (delta) {
 				iterations--;
 			}
 		}
+	} else {
+		this._innerAction._step(delta);
 
-		return;
-	}
-
-	this._innerAction._step(delta);
-
-	if (this._innerAction.hasFinished() && (this._iterations > 0 || this._infinite)) {
-		this._iterations--;
-		this._innerAction._begin(this._target);
+		if (this._innerAction.hasFinished() && (this._iterations > 0 || this._infinite)) {
+			this._iterations--;
+			this._innerAction._begin(this._target);
+		}
 	}
 }
 
@@ -1209,14 +1207,24 @@ SRA.ActionGroup.prototype._step = function (delta) {
 	var length = actions.length;
 	var action;
 
-	for (var i = 0; i < length; i++) {
-		action = actions[i];
-		action._step(delta);
+	if (this._jumpToEnd) {
+		for (var i = 0; i < length; i++) {
+			action = actions[i];
+			action.end(false);
+			action._step(0.0);
+		}
 
-		if (action.hasFinished()) {
-			actions.splice(i, 1);
-			length--;
-			i--;
+		actions.splice(0, length);
+	} else {
+		for (var i = 0; i < length; i++) {
+			action = actions[i];
+			action._step(delta);
+
+			if (action.hasFinished()) {
+				actions.splice(i, 1);
+				length--;
+				i--;
+			}
 		}
 	}
 }
