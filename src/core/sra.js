@@ -1165,6 +1165,8 @@ SRA.RepeatAction.prototype._step = function (delta) {
 				action._step(0.0);
 				iterations--;
 			}
+
+			this._iterations = 0;
 		}
 	} else {
 		this._innerAction._step(delta);
@@ -1252,12 +1254,31 @@ SRA.ActionSequence.prototype._step = function (delta) {
 		return;
 	}
 
-	var action = this._actions[this._currentActionIndex];
-	action._step(delta);
+	if (this._jumpToEnd) {
+		var target = this._target;
+		var actions = this._actions;
+		var length = actions.length;
 
-	if (action.hasFinished()) {
-		if (++this._currentActionIndex < this._actions.length) {
-			this._actions[this._currentActionIndex]._begin(this._target);
+		var action = actions[this._currentActionIndex];
+		action.end(false);
+		action._step(0.0);
+
+		for (var i = this._currentActionIndex + 1; i < length; i++) {
+			action = actions[i];
+			action._begin(target);
+			action.end(false);
+			action._step(0.0);
+		}
+
+		this._currentActionIndex = length - 1;
+	} else {
+		var action = this._actions[this._currentActionIndex];
+		action._step(delta);
+
+		if (action.hasFinished()) {
+			if (++this._currentActionIndex < this._actions.length) {
+				this._actions[this._currentActionIndex]._begin(this._target);
+			}
 		}
 	}
 }
