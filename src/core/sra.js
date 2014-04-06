@@ -1480,7 +1480,7 @@ SRA.Controller.getSharedInstance = function () {
 	if (!SRA.Controller._sharedInstance) {
 		var controller = new SRA.Controller();
 		controller.canvas = null;
-		controller.scheduler = new Dispatch.Scheduler();
+		controller._scheduler = new Dispatch.Scheduler();
 		controller._runLoop = new Dispatch.RunLoop(-1, SRA.Controller.prototype._mainLoop, controller);
 		controller._actionManager = new SRA.ActionManager();
 		controller._scenesStack = [];
@@ -1526,6 +1526,14 @@ SRA.Controller.prototype.getActionManager = function () {
 	return this._actionManager;
 }
 
+SRA.Controller.prototype.scheduleUpdate = function (entity, action) {
+	this._scheduler.schedule(entity, action);
+}
+
+SRA.Controller.prototype.unscheduleUpdate = function (entity) {
+	this._scheduler.unschedule(entity);
+}
+
 SRA.Controller.prototype.pause = function () {
 	this._paused = true;
 }
@@ -1548,7 +1556,7 @@ SRA.Controller.prototype._mainLoop = function (context) {
 
 	controller._calculateDeltaTime();
 	controller._actionManager._hit(controller._deltaTime);
-	controller.scheduler._hit(controller._deltaTime);
+	controller._scheduler._hit(controller._deltaTime);
 	topScene._hit(controller.canvas.context);
 }
 
