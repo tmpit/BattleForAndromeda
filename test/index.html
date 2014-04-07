@@ -32,7 +32,8 @@
 				var rotateRight = new SRA.RotateByAction(Geometry.degreesToRadians(90.0), 1.2, 1.0);
 				rotateRight.setTimingFunction(SRA.TimingFunction.EaseInOut);
 				var delay = new SRA.DelayAction(0.2, 1.0);
-				var actions = [delay, moveRight, delay, rotateRight, delay, moveDown, delay, rotateRight, delay, moveLeft, delay, rotateRight, delay, moveUp, delay, rotateRight];
+				var actions = [delay, moveRight, delay, rotateRight, delay, moveDown, delay, rotateRight, 
+								delay, moveLeft, delay, rotateRight, delay, moveUp, delay, rotateRight];
 				var sequence = new SRA.ActionSequence(actions);
 				var repeat = new SRA.RepeatAction(sequence, -1);
 				node.addAction(repeat);
@@ -91,14 +92,33 @@
 			}, 1000);
 		}
 
-		var startGame = function () {
+		var space;
+
+		var observer = new Input.EventObserver(window);
+		observer.startObservingKeyEvents();
+
+		function addBackground() {
+			space = new SRA.Entity();
+			space.sprite = cache.imageForKey('space.jpg');
+			space.rect.size = new Geometry.Size(space.sprite.width, space.sprite.height);
+			space.contentMode = Graphics.Image.ContentMode.Center;
+			getGameController().getTopScene().addChild(space);
+
+			space.update = function (delta) {
+
+			}
+
+			getGameController().scheduleUpdate(space, space.update);
+		}
+
+		function startGame() {
 			var canvas = document.getElementsByTagName('canvas')[0];
 			var controller = SRA.Controller.getSharedInstance();
 			controller.canvas = new Graphics.Canvas(canvas);
 			controller.setFrameRate(60);
 
 			var mainScene = new SRA.Scene();
-			mainScene.backgroundColor = Graphics.Color.Magenta;
+			mainScene.backgroundColor = Graphics.Color.White;
 			mainScene.rect.size = controller.canvas.getSize();
 			controller.pushScene(mainScene);
 			controller.run();
@@ -107,10 +127,10 @@
 				return controller;
 			}
 
-			testActionInterrupt();
+			addBackground();
 		}
 
-		var imagePaths = ['gordon_freeman.png', 'h_gray.png', 'h_white.png', 'h_red.png', 'h_blue.png'];
+		var imagePaths = ['gordon_freeman.png', 'h_gray.png', 'h_white.png', 'h_red.png', 'h_blue.png', 'space.jpg'];
 		var loader = new Graphics.Image.Loader(imagePaths, cache, startGame);
 
 		window.onload = function () {
