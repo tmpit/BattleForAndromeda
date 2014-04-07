@@ -609,14 +609,102 @@ Dispatch.Scheduler.prototype.unschedule = function (target) {
 	this._actions.splice(index, 1);
 }
 
-Dispatch.Scheduler.prototype._hit = function (delta) {
+Dispatch.Scheduler.prototype._hit = function (arg) {
 	var target, action;
 
 	for (var i = 0; i < this._targets.length; i++) {
 		target = this._targets[i];
 		action = this._actions[i];
-		action.call(target, delta);
+		action.call(target, arg);
 	}
+}
+
+// ----------------------------------------------------------------------------
+// ---------------------------------- INPUT -----------------------------------
+// ----------------------------------------------------------------------------
+var Input = {};
+
+Input.Keymap = function () {
+	this.A = false,
+	this.B = false,
+	this.C = false,
+	this.D = false,
+	this.E = false,
+	this.F = false,
+	this.G = false,
+	this.H = false,
+	this.I = false,
+	this.J = false,
+	this.K = false,
+	this.L = false,
+	this.M = false,
+	this.N = false,
+	this.O = false,
+	this.P = false,
+	this.Q = false,
+	this.R = false,
+	this.S = false,
+	this.T = false,
+	this.U = false,
+	this.V = false,
+	this.W = false,
+	this.X = false,
+	this.Y = false,
+	this.Z = false,
+	this['1'] = false,
+	this['2'] = false,
+	this['3'] = false,
+	this['4'] = false,
+	this['5'] = false,
+	this['6'] = false,
+	this['7'] = false,
+	this['8'] = false,
+	this['9'] = false,
+	this['0'] = false
+}
+
+Input.EventObserver = function (DOMElement) {
+	if (!arguments.length || !DOMElement) {
+		DOMElement = window;
+	}
+
+	this._DOMElement = DOMElement;
+	this._observingKeyEvents = false;
+	this._observingMouseEvents = false;
+	this.keymap = new Input.Keymap();
+}
+
+Input.EventObserver.prototype.startObservingKeyEvents = function () {
+	if (this._observingKeyEvents) {
+		return;
+	}
+
+	this._observingKeyEvents = true;
+	var self = this;
+
+	this._DOMElement.onkeydown = function (event) {
+		var c = self._charFromKeyCode(event.keyCode);
+		self.keymap[c] = true;
+	}
+
+	this._DOMElement.onkeyup = function (event) {
+		var c = self._charFromKeyCode(event.keyCode);
+		self.keymap[c] = false;
+	}
+}
+
+Input.EventObserver.prototype.stopObservingKeyEvents = function () {
+	if (!this._observingKeyEvents) {
+		return;
+	}
+
+	this._observingKeyEvents = false;
+	this._DOMElement.onkeydown = null;
+	this._DOMElement.onkeyup = null;
+}
+
+Input.EventObserver.prototype._charFromKeyCode = function (code) {
+	return String.fromCharCode(code);
 }
 
 // ----------------------------------------------------------------------------
