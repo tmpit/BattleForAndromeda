@@ -767,6 +767,10 @@ Input.EventObserver.prototype.startObservingMouseEvents = function () {
 		}
 	}
 
+	this._DOMElement.oncontextmenu = function () {
+		return false;
+	}
+
 	this._DOMElement.onmousemove = function (event) {
 		var point = self._convertedPointInDOMElementSpace(event.clientX, event.clientY);
 		self.mouse.setPosition(point);
@@ -782,6 +786,9 @@ Input.EventObserver.prototype.stopObservingMouseEvents = function () {
 	this._DOMElement.onmousedown = null;
 	this._DOMElement.onmouseup = null;
 	this._DOMElement.onmousemove = null;
+	this._DOMElement.oncontextmenu = function () {
+		return true;
+	}
 }
 
 // ----------------------------------------------------------------------------
