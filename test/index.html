@@ -93,9 +93,7 @@
 		}
 
 		var space;
-
-		var observer = new Input.EventObserver(window);
-		observer.startObservingKeyEvents();
+		var observer;
 
 		function addBackground() {
 			space = new SRA.Entity();
@@ -105,7 +103,7 @@
 			getGameController().getTopScene().addChild(space);
 
 			space.update = function (delta) {
-
+				
 			}
 
 			getGameController().scheduleUpdate(space, space.update);
@@ -122,6 +120,10 @@
 			mainScene.rect.size = controller.canvas.getSize();
 			controller.pushScene(mainScene);
 			controller.run();
+
+			observer = new Input.EventObserver(canvas);
+			observer.startObservingKeyEvents();
+			observer.startObservingMouseEvents();
 
 			window.getGameController = function () {
 				return controller;
