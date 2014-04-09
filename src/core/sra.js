@@ -804,7 +804,7 @@ SRA.Entity = function () {
 	this.rotation = 0.0;
 	this.scale = new Geometry.Vector2(1.0, 1.0);
 	this.anchor = new Geometry.Vector2(0.5, 0.5);
-	this.zOrder = 0;
+	this._zOrder = 0;
 
 	this.contentMode = Graphics.Image.ContentMode.Center;
 	this.sprite = null;
@@ -826,6 +826,18 @@ SRA.Entity.prototype.getPosition = function () {
 SRA.Entity.prototype.setPosition = function (position) {
 	this.rect.origin.x = position.x - (this.rect.size.width * this.anchor.x);
 	this.rect.origin.y = position.y - (this.rect.size.height * this.anchor.y);
+}
+
+SRA.Entity.prototype.setZOrder = function (zOrder) {
+	this._zOrder = zOrder;
+
+	if (this._parent) {
+		this._parent._childrenNeedSorting = true;
+	}
+}
+
+SRA.Entity.prototype.getZOrder = function () {
+	return this._zOrder;
 }
 
 SRA.Entity.prototype.addChild = function (childEntity) {
