@@ -624,43 +624,68 @@ Dispatch.Scheduler.prototype._hit = function (arg) {
 // ----------------------------------------------------------------------------
 var Input = {};
 
-Input.Keymap = function () {
-	this.A = false,
-	this.B = false,
-	this.C = false,
-	this.D = false,
-	this.E = false,
-	this.F = false,
-	this.G = false,
-	this.H = false,
-	this.I = false,
-	this.J = false,
-	this.K = false,
-	this.L = false,
-	this.M = false,
-	this.N = false,
-	this.O = false,
-	this.P = false,
-	this.Q = false,
-	this.R = false,
-	this.S = false,
-	this.T = false,
-	this.U = false,
-	this.V = false,
-	this.W = false,
-	this.X = false,
-	this.Y = false,
-	this.Z = false,
-	this['1'] = false,
-	this['2'] = false,
-	this['3'] = false,
-	this['4'] = false,
-	this['5'] = false,
-	this['6'] = false,
-	this['7'] = false,
-	this['8'] = false,
-	this['9'] = false,
-	this['0'] = false
+Input.Keyboard = function () {
+	this.A = false;
+	this.B = false;
+	this.C = false;
+	this.D = false;
+	this.E = false;
+	this.F = false;
+	this.G = false;
+	this.H = false;
+	this.I = false;
+	this.J = false;
+	this.K = false;
+	this.L = false;
+	this.M = false;
+	this.N = false;
+	this.O = false;
+	this.P = false;
+	this.Q = false;
+	this.R = false;
+	this.S = false;
+	this.T = false;
+	this.U = false;
+	this.V = false;
+	this.W = false;
+	this.X = false;
+	this.Y = false;
+	this.Z = false;
+	this['1'] = false;
+	this['2'] = false;
+	this['3'] = false;
+	this['4'] = false;
+	this['5'] = false;
+	this['6'] = false;
+	this['7'] = false;
+	this['8'] = false;
+	this['9'] = false;
+	this['0'] = false;
+}
+
+Input.Mouse = function () {
+	this.leftButton = false;
+	this.rightButton = false;
+
+	this._position = Geometry.Vector2.Zero.clone();
+	this._delta = Geometry.Vector2.Zero.clone();
+}
+
+Input.Mouse.prototype.setPosition = function (pos) {
+	this._delta.x = pos.x - this._position.x;
+	this._delta.y = pos.y - this._position.y;
+	this._position.x = pos.x;
+	this._position.y = pos.y;
+}
+
+Input.Mouse.prototype.getPosition = function () {
+	return this._position.clone();
+}
+
+Input.Mouse.prototype.popDelta = function () {
+	var delta = this._delta.clone();
+	this._delta.x = this._delta.y = 0.0;
+	return delta;
 }
 
 Input.EventObserver = function (DOMElement) {
@@ -671,7 +696,8 @@ Input.EventObserver = function (DOMElement) {
 	this._DOMElement = DOMElement;
 	this._observingKeyEvents = false;
 	this._observingMouseEvents = false;
-	this.keymap = new Input.Keymap();
+	this.keyboard = new Input.Keyboard();
+	this.mouse = new Input.Mouse();
 }
 
 Input.EventObserver.prototype.startObservingKeyEvents = function () {
@@ -684,12 +710,12 @@ Input.EventObserver.prototype.startObservingKeyEvents = function () {
 
 	this._DOMElement.onkeydown = function (event) {
 		var c = self._charFromKeyCode(event.keyCode);
-		self.keymap[c] = true;
+		self.keyboard[c] = true;
 	}
 
 	this._DOMElement.onkeyup = function (event) {
 		var c = self._charFromKeyCode(event.keyCode);
-		self.keymap[c] = false;
+		self.keyboard[c] = false;
 	}
 }
 
@@ -705,6 +731,57 @@ Input.EventObserver.prototype.stopObservingKeyEvents = function () {
 
 Input.EventObserver.prototype._charFromKeyCode = function (code) {
 	return String.fromCharCode(code);
+}
+
+Input.EventObserver.prototype._convertedPointInDOMElementSpace = function (x, y) {
+	if (this._DOMElement !== window) {
+		var rect = this._DOMElement.getBoundingClientRect();	
+		x -= rect.left;
+		y -= rect.top;
+	}
+
+	return new Geometry.Vector2(x, y);
+}
+
+Input.EventObserver.prototype.startObservingMouseEvents = function () {
+	if (this._observingMouseEvents) {
+		return;
+	}
+
+	this._observingMouseEvents = true;
+	var self = this;
+
+	this._DOMElement.onmousedown = function (event) {
+		if (!event.button) {
+			self.mouse.leftButton = true;
+		} else if (2 == event.button) {
+			self.mouse.rightButton = true;
+		}
+	}
+
+	this._DOMElement.onmouseup = function (event) {
+		if (!event.button) {
+			self.mouse.leftButton = false;
+		} else if (2 == event.button) {
+			self.mouse.rightButton = false;
+		}
+	}
+
+	this._DOMElement.onmousemove = function (event) {
+		var point = self._convertedPointInDOMElementSpace(event.clientX, event.clientY);
+		self.mouse.setPosition(point);
+	}
+}
+
+Input.EventObserver.prototype.stopObservingMouseEvents = function () {
+	if (!this._observingMouseEvents) {
+		return;
+	}
+
+	this._observingMouseEvents = false;
+	this._DOMElement.onmousedown = null;
+	this._DOMElement.onmouseup = null;
+	this._DOMElement.onmousemove = null;
 }
 
 // ----------------------------------------------------------------------------
