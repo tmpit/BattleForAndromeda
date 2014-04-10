@@ -1,5 +1,3 @@
-SRA
-===
 Simple Rendering Application
 ----------------------------
 A small and simple javascript 2D rendering/layout engine built on top of the canvas element.
