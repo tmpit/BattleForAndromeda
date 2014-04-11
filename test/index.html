@@ -109,6 +109,20 @@
 			getGameController().scheduleUpdate(space, space.update);
 		}
 
+		function addSpaceShip() {
+			var ship = new SRA.Entity();
+			ship.backgroundColor = null;
+			ship.sprite = cache.imageForKey('ship1.png');
+			ship.rect.origin.x = ship.rect.origin.y = 100.0;
+			ship.rect.size = new Geometry.Size(ship.sprite.width, ship.sprite.height);
+			ship.contentMode = Graphics.Image.ContentMode.Top;
+			getGameController().getTopScene().addChild(ship);
+
+			var action = new SRA.SpriteAction([cache.imageForKey('ship1.png'), cache.imageForKey('ship2.png')], 0.2, 1.0);
+			var repeat = new SRA.RepeatAction(action, -1);
+			ship.addAction(repeat);
+		}
+
 		function startGame() {
 			var canvas = document.getElementsByTagName('canvas')[0];
 			var controller = SRA.Controller.getSharedInstance();
@@ -130,9 +144,10 @@
 			}
 
 			addBackground();
+			addSpaceShip();
 		}
 
-		var imagePaths = ['gordon_freeman.png', 'h_gray.png', 'h_white.png', 'h_red.png', 'h_blue.png', 'space.jpg'];
+		var imagePaths = ['gordon_freeman.png', 'h_gray.png', 'h_white.png', 'h_red.png', 'h_blue.png', 'space.jpg', 'ship1.png', 'ship2.png'];
 		var loader = new Graphics.Image.Loader(imagePaths, cache, startGame);
 
 		window.onload = function () {
