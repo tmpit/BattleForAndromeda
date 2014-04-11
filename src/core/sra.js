@@ -1616,7 +1616,13 @@ SRA.SpriteAction.prototype.begin = function () {
 
 SRA.SpriteAction.prototype.step = function (progress) {
 	var index = Math.floor(progress / this._threshold);
-	this._target.sprite = this._images[index];
+	var images = this._images;
+
+	if (index >= images.length) {
+		index = images.length - 1;
+	}
+
+	this._target.sprite = images[index];
 }
 
 SRA.ActionManager = function () {
