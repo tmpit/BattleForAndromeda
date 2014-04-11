@@ -106,6 +106,10 @@ Geometry.Vector2.prototype.isOppositeTo = function (vector) {
 	return Math.abs(angle - Math.PI) <= Geometry._PRECISION;
 }
 
+Geometry.Vector2.prototype.rotated90Clockwise = function () {
+	return new Geometry.Vector2(-this.y, this.x);
+}
+
 Geometry.Vector2.prototype.isParallelTo = function (vector) {
 	var angle = this.angleFrom(vector);
 
