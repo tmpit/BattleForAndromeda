@@ -688,12 +688,8 @@ Input.Mouse.prototype.popDelta = function () {
 	return delta;
 }
 
-Input.EventObserver = function (DOMElement) {
-	if (!arguments.length || !DOMElement) {
-		DOMElement = window;
-	}
-
-	this._DOMElement = DOMElement;
+Input.EventObserver = function () {
+	this._mouseDOMElement = null;
 	this._observingKeyEvents = false;
 	this._observingMouseEvents = false;
 	this.keyboard = new Input.Keyboard();
@@ -708,12 +704,12 @@ Input.EventObserver.prototype.startObservingKeyEvents = function () {
 	this._observingKeyEvents = true;
 	var self = this;
 
-	this._DOMElement.onkeydown = function (event) {
+	window.onkeydown = function (event) {
 		var c = self._charFromKeyCode(event.keyCode);
 		self.keyboard[c] = true;
 	}
 
-	this._DOMElement.onkeyup = function (event) {
+	window.onkeyup = function (event) {
 		var c = self._charFromKeyCode(event.keyCode);
 		self.keyboard[c] = false;
 	}
@@ -734,8 +730,8 @@ Input.EventObserver.prototype._charFromKeyCode = function (code) {
 }
 
 Input.EventObserver.prototype._convertedPointInDOMElementSpace = function (x, y) {
-	if (this._DOMElement !== window) {
-		var rect = this._DOMElement.getBoundingClientRect();	
+	if (this._mouseDOMElement !== window) {
+		var rect = this._mouseDOMElement.getBoundingClientRect();	
 		x -= rect.left;
 		y -= rect.top;
 	}
@@ -743,15 +739,16 @@ Input.EventObserver.prototype._convertedPointInDOMElementSpace = function (x, y)
 	return new Geometry.Vector2(x, y);
 }
 
-Input.EventObserver.prototype.startObservingMouseEvents = function () {
+Input.EventObserver.prototype.startObservingMouseEvents = function (DOMElement) {
 	if (this._observingMouseEvents) {
 		return;
 	}
 
 	this._observingMouseEvents = true;
+	this._mouseDOMElement = DOMElement;
 	var self = this;
 
-	this._DOMElement.onmousedown = function (event) {
+	DOMElement.onmousedown = function (event) {
 		if (!event.button) {
 			self.mouse.leftButton = true;
 		} else if (2 == event.button) {
@@ -759,7 +756,7 @@ Input.EventObserver.prototype.startObservingMouseEvents = function () {
 		}
 	}
 
-	this._DOMElement.onmouseup = function (event) {
+	DOMElement.onmouseup = function (event) {
 		if (!event.button) {
 			self.mouse.leftButton = false;
 		} else if (2 == event.button) {
@@ -767,11 +764,11 @@ Input.EventObserver.prototype.startObservingMouseEvents = function () {
 		}
 	}
 
-	this._DOMElement.oncontextmenu = function () {
+	DOMElement.oncontextmenu = function () {
 		return false;
 	}
 
-	this._DOMElement.onmousemove = function (event) {
+	DOMElement.onmousemove = function (event) {
 		var point = self._convertedPointInDOMElementSpace(event.clientX, event.clientY);
 		self.mouse.setPosition(point);
 	}
@@ -783,12 +780,14 @@ Input.EventObserver.prototype.stopObservingMouseEvents = function () {
 	}
 
 	this._observingMouseEvents = false;
-	this._DOMElement.onmousedown = null;
-	this._DOMElement.onmouseup = null;
-	this._DOMElement.onmousemove = null;
-	this._DOMElement.oncontextmenu = function () {
+	this._mouseDOMElement.onmousedown = null;
+	this._mouseDOMElement.onmouseup = null;
+	this._mouseDOMElement.onmousemove = null;
+	this._mouseDOMElement.oncontextmenu = function () {
 		return true;
 	}
+
+	this._mouseDOMElement = null;
 }
 
 // ----------------------------------------------------------------------------
