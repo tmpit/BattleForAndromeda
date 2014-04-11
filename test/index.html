@@ -92,35 +92,67 @@
 			}, 1000);
 		}
 
-		var space;
 		var observer;
+		var ship;
 
 		function addBackground() {
-			space = new SRA.Entity();
+			var space = new SRA.Entity();
 			space.sprite = cache.imageForKey('space.jpg');
 			space.rect.size = new Geometry.Size(space.sprite.width, space.sprite.height);
 			space.contentMode = Graphics.Image.ContentMode.Center;
 			getGameController().getTopScene().addChild(space);
 
-			space.update = function (delta) {
-				
+			var getStep = function (offset) {
+				var direction = observer.mouse.getPosition().minus(ship.getPosition()).normalize();
+				return direction.multiply(offset);
 			}
 
-			getGameController().scheduleUpdate(space, space.update);
+			var update = function (delta) {
+				var k = observer.keyboard;
+				var offset = 5.0;
+
+				if (k.W) {
+					space.rect.origin.subtract(getStep(offset));
+				} else if (k.S) {
+					space.rect.origin.add(getStep(offset));
+				}
+
+				if (k.A) {
+					space.rect.origin.add(getStep(offset / 2.0).rotated90Clockwise());
+				} else if (k.D) {
+					space.rect.origin.subtract(getStep(offset / 2.0).rotated90Clockwise());
+				}
+			}
+
+			space.update = update;
+			getGameController().scheduleUpdate(space, update);
 		}
 
 		function addSpaceShip() {
-			var ship = new SRA.Entity();
+			var controller = getGameController();
+			var canvasSize = controller.canvas.getSize();
+
+			ship = new SRA.Entity();
 			ship.backgroundColor = null;
 			ship.sprite = cache.imageForKey('ship1.png');
-			ship.rect.origin.x = ship.rect.origin.y = 100.0;
+			ship.rect.origin.x = (canvasSize.width - ship.sprite.width) / 2.0;
+			ship.rect.origin.y = (canvasSize.height - ship.sprite.height) / 2.0;
 			ship.rect.size = new Geometry.Size(ship.sprite.width, ship.sprite.height);
 			ship.contentMode = Graphics.Image.ContentMode.Top;
-			getGameController().getTopScene().addChild(ship);
+			controller.getTopScene().addChild(ship);
 
 			var action = new SRA.SpriteAction([cache.imageForKey('ship1.png'), cache.imageForKey('ship2.png')], 0.2, 1.0);
 			var repeat = new SRA.RepeatAction(action, -1);
 			ship.addAction(repeat);
+
+			var update = function (delta) {
+				var angle = observer.mouse.getPosition().minus(ship.getPosition()).angleFromXAxis();
+				angle += Math.PI / 2.0; // shift angle so it's as if it's relative to the Y axis
+				ship.rotation = angle;
+			}
+
+			ship.update = update;
+			controller.scheduleUpdate(ship, update);
 		}
 
 		function startGame() {
@@ -135,9 +167,9 @@
 			controller.pushScene(mainScene);
 			controller.run();
 
-			observer = new Input.EventObserver(canvas);
+			observer = new Input.EventObserver();
 			observer.startObservingKeyEvents();
-			observer.startObservingMouseEvents();
+			observer.startObservingMouseEvents(canvas);
 
 			window.getGameController = function () {
 				return controller;
