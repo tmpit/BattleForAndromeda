@@ -414,6 +414,16 @@ Geometry.Rect.prototype.clone = function () {
 	return new Geometry.Rect(this.origin, this.size);
 }
 
+Geometry.Rect.prototype.isPointInside = function (point) {
+	return this.areXYInside(point.x, point.y);
+}
+
+Geometry.Rect.prototype.areXYInside = function (x, y) {
+	var tx = this.origin.x;
+	var ty = this.origin.y;
+	return x >= tx && y >= ty && x <= tx + this.size.width && y <= ty + this.size.height;	
+}
+
 Geometry.Rect.Zero = new Geometry.Rect(Geometry.Vector2.Zero, Geometry.Size.Zero);
 
 // ----------------------------------------------------------------------------
