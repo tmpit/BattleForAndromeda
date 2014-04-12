@@ -869,6 +869,17 @@ SRA.BaseEntity = {
 		this._childrenNeedSorting = true;
 	},
 
+	removeAllChildren: function () {
+		var children = this.children;
+		var length = this._children.length;
+
+		for (var i = 0; i < length; i++) {
+			children[i]._parent = null;
+		}
+
+		children.splice(0, length);
+	}
+
 	removeFromParent: function () {
 		if (!this._parent) {
 			return;
