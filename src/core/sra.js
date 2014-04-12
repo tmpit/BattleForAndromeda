@@ -424,6 +424,14 @@ Geometry.Rect.prototype.isXYPointInside = function (x, y) {
 	return x >= tx && y >= ty && x <= tx + this.size.width && y <= ty + this.size.height;	
 }
 
+Geometry.Rect.prototype.getMaxX = function () {
+	return this.origin.x + this.size.width;
+}
+
+Geometry.Rect.prototype.getMaxY = function () {
+	return this.origin.y + this.size.height;
+}
+
 Geometry.Rect.Zero = new Geometry.Rect(Geometry.Vector2.Zero, Geometry.Size.Zero);
 
 // ----------------------------------------------------------------------------
