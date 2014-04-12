@@ -415,10 +415,10 @@ Geometry.Rect.prototype.clone = function () {
 }
 
 Geometry.Rect.prototype.isPointInside = function (point) {
-	return this.areXYInside(point.x, point.y);
+	return this.isXYPointInside(point.x, point.y);
 }
 
-Geometry.Rect.prototype.areXYInside = function (x, y) {
+Geometry.Rect.prototype.isXYPointInside = function (x, y) {
 	var tx = this.origin.x;
 	var ty = this.origin.y;
 	return x >= tx && y >= ty && x <= tx + this.size.width && y <= ty + this.size.height;	
