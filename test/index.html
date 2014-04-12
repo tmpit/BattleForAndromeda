@@ -109,18 +109,35 @@
 
 			var update = function (delta) {
 				var k = observer.keyboard;
-				var offset = 5.0;
+				var verticalOffset = 200.0 * delta;
+				var horizontalOffset = 200.0 * delta;
+				var hor = null, ver = null, origin;
 
 				if (k.W) {
-					space.rect.origin.subtract(getStep(offset));
+					hor = space.rect.origin.minus(getStep(verticalOffset));
 				} else if (k.S) {
-					space.rect.origin.add(getStep(offset));
+					hor = space.rect.origin.plus(getStep(verticalOffset));
 				}
 
+				origin = hor;
+
 				if (k.A) {
-					space.rect.origin.add(getStep(offset / 2.0).rotated90Clockwise());
+					ver = space.rect.origin.plus(getStep(horizontalOffset).rotated90Clockwise());
 				} else if (k.D) {
-					space.rect.origin.subtract(getStep(offset / 2.0).rotated90Clockwise());
+					ver = space.rect.origin.minus(getStep(horizontalOffset).rotated90Clockwise());
+				}
+
+				if (ver) {
+					if (!origin) {
+						origin = ver;
+					} else {
+						origin.x = (origin.x + ver.x) / 2.0;
+						origin.y = (origin.y + ver.y) / 2.0;	
+					}
+				}				
+
+				if (origin) {
+					space.rect.origin = origin;
 				}
 			}
 
@@ -134,7 +151,7 @@
 
 			ship = new SRA.Entity();
 			ship.backgroundColor = null;
-			ship.sprite = cache.imageForKey('ship1.png');
+			ship.sprite = cache.imageForKey('ship2.png');
 			ship.rect.origin.x = (canvasSize.width - ship.sprite.width) / 2.0;
 			ship.rect.origin.y = (canvasSize.height - ship.sprite.height) / 2.0;
 			ship.rect.size = new Geometry.Size(ship.sprite.width, ship.sprite.height);
