@@ -799,206 +799,237 @@ Input.EventObserver.prototype.stopObservingMouseEvents = function () {
 // ----------------------------------------------------------------------------
 var SRA = {};
 
-SRA.Entity = function () {
-	this.tag = 0
-	this.context = {};
+SRA.BaseEntity = {
+	_init: function () {
+		this.tag = 0
+		this.context = {};
 
-	this.rect = Geometry.Rect.Zero.clone();
-	this.rotation = 0.0;
-	this.scale = new Geometry.Vector2(1.0, 1.0);
-	this.anchor = new Geometry.Vector2(0.5, 0.5);
-	this._zOrder = 0;
+		this.rect = Geometry.Rect.Zero.clone();
+		this.rotation = 0.0;
+		this.scale = new Geometry.Vector2(1.0, 1.0);
+		this.anchor = new Geometry.Vector2(0.5, 0.5);
+		this._zOrder = 0;
 
-	this.contentMode = Graphics.Image.ContentMode.Center;
-	this.sprite = null;
-	this.backgroundColor = Graphics.Color.White;
+		this.contentMode = Graphics.Image.ContentMode.Center;
+		this.sprite = null;
+		this.backgroundColor = Graphics.Color.White;
 
-	this.visible = true;
-	this.opacity = 1.0;
-	this.rigidBody = null;
+		this.visible = true;
+		this.opacity = 1.0;
+		this.rigidBody = null;
 
-	this.children = [];
-	this._parent = null;
-	this._childrenNeedSorting = false;
-}
+		this.children = [];
+		this._parent = null;
+		this._childrenNeedSorting = false;	
+	},
 
-SRA.Entity.prototype.getPosition = function () {
-	return new Geometry.Vector2(this.rect.origin.x + (this.rect.size.width * this.anchor.x), this.rect.origin.y + (this.rect.size.height * this.anchor.y));
-}
+	getPosition: function () {
+		return new Geometry.Vector2(this.rect.origin.x + (this.rect.size.width * this.anchor.x), 
+									this.rect.origin.y + (this.rect.size.height * this.anchor.y));
+	},
 
-SRA.Entity.prototype.setPosition = function (position) {
-	this.rect.origin.x = position.x - (this.rect.size.width * this.anchor.x);
-	this.rect.origin.y = position.y - (this.rect.size.height * this.anchor.y);
-}
+	setPosition: function (position) {
+		this.rect.origin.x = position.x - (this.rect.size.width * this.anchor.x);
+		this.rect.origin.y = position.y - (this.rect.size.height * this.anchor.y);
+	},
 
-SRA.Entity.prototype.setZOrder = function (zOrder) {
-	this._zOrder = zOrder;
+	setZOrder: function (zOrder) {
+		this._zOrder = zOrder;
 
-	if (this._parent) {
-		this._parent._childrenNeedSorting = true;
-	}
-}
-
-SRA.Entity.prototype.getZOrder = function () {
-	return this._zOrder;
-}
-
-SRA.Entity.prototype.addChild = function (childEntity) {
-	this.children.push(childEntity);
-	childEntity._parent = this;
-	this._childrenNeedSorting = true;
-}
-
-SRA.Entity.prototype.removeFromParent = function () {
-	if (!this._parent) {
-		return;
-	}
-
-	var index = this._parent.children.indexOf(this);
-
-	if (-1 == index) {
-		return;
-	}
-
-	this._parent.children.splice(index, 1);
-	this._parent._childrenNeedSorting = true;
-	this._parent = null;
-}
-
-SRA.Entity.prototype.childWithTag = function (tag) {
-	for (var i = 0; i < this.children.length; i++) {
-		var child = this.children[i];
-		if (tag == child.tag) {
-			return child;
+		if (this._parent) {
+			this._parent._childrenNeedSorting = true;
 		}
-	}
+	},
 
-	return null;
-}
+	getZOrder: function () {
+		return this._zOrder;
+	},
 
-SRA.Entity.prototype.addAction = function (action) {
-	SRA.Controller.getSharedInstance().getActionManager().addAction(action, this);
-}
+	addChild: function (childEntity) {
+		this.children.push(childEntity);
+		childEntity._parent = this;
+		this._childrenNeedSorting = true;
+	},
 
-SRA.Entity.prototype.draw = function (context) {
-	context.save();
+	removeFromParent: function () {
+		if (!this._parent) {
+			return;
+		}
 
-	context.globalAlpha = this.opacity;
+		var index = this._parent.children.indexOf(this);
 
-	if (this.backgroundColor) {
-		context.fillStyle = this.backgroundColor;
-		context.fillRect(0.0, 0.0, this.rect.size.width, this.rect.size.height);
-	}
+		if (-1 == index) {
+			return;
+		}
 
-	if (this.sprite) {
-		this._drawSpriteRespectingContentMode(context);
-	}
+		this._parent.children.splice(index, 1);
+		this._parent._childrenNeedSorting = true;
+		this._parent = null;
+	},
 
-	context.restore();
-}
-
-SRA.Entity.prototype._drawSpriteRespectingContentMode = function (context) {
-	var w = this.rect.size.width;
-	var h = this.rect.size.height;
-	var iw = this.sprite.width;
-	var ih = this.sprite.height;
-	var minW = (w < iw ? w : iw);
-	var minH = (h < ih ? h : ih);
-	var clipW = iw > w;
-	var clipH = ih > h;
-
-	switch(this.contentMode) {
-		case Graphics.Image.ContentMode.Center:
-			if (clipW || clipH) {
-				var clipX, clipY, startX, startY;
-
-				if (clipW) {
-					clipX = (iw - w) / 2.0;
-					startX = 0.0;
-				} else {
-					clipX = 0.0;
-					startX = (w - iw) / 2.0;
-				}
-
-				if (clipH) {
-					clipY = (ih - h) / 2.0;
-					startY = 0.0;
-				} else {
-					clipY = 0.0;
-					startY = (h - ih) / 2.0;
-				}
-
-				context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
-			} else {
-				context.drawImage(this.sprite, (w - iw) / 2.0, (h - ih) / 2.0);
+	childWithTag: function (tag) {
+		for (var i = 0; i < this.children.length; i++) {
+			var child = this.children[i];
+			if (tag == child.tag) {
+				return child;
 			}
-			break;
+		}
 
-		case Graphics.Image.ContentMode.Top:
-			if (clipW || clipH) {
+		return null;
+	},
+
+	addAction: function (action) {
+		SRA.Controller.getSharedInstance().getActionManager().addAction(action, this);
+	},
+
+	draw: function (context) {
+		context.save();
+
+		context.globalAlpha = this.opacity;
+
+		if (this.backgroundColor) {
+			context.fillStyle = this.backgroundColor;
+			context.fillRect(0.0, 0.0, this.rect.size.width, this.rect.size.height);
+		}
+
+		if (this.sprite) {
+			this._drawSpriteRespectingContentMode(context);
+		}
+
+		context.restore();
+	},
+
+	_drawSpriteRespectingContentMode: function (context) {
+		var w = this.rect.size.width;
+		var h = this.rect.size.height;
+		var iw = this.sprite.width;
+		var ih = this.sprite.height;
+		var minW = (w < iw ? w : iw);
+		var minH = (h < ih ? h : ih);
+		var clipW = iw > w;
+		var clipH = ih > h;
+
+		switch(this.contentMode) {
+			case Graphics.Image.ContentMode.Center:
+				if (clipW || clipH) {
+					var clipX, clipY, startX, startY;
+
+					if (clipW) {
+						clipX = (iw - w) / 2.0;
+						startX = 0.0;
+					} else {
+						clipX = 0.0;
+						startX = (w - iw) / 2.0;
+					}
+
+					if (clipH) {
+						clipY = (ih - h) / 2.0;
+						startY = 0.0;
+					} else {
+						clipY = 0.0;
+						startY = (h - ih) / 2.0;
+					}
+
+					context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+				} else {
+					context.drawImage(this.sprite, (w - iw) / 2.0, (h - ih) / 2.0);
+				}
+				break;
+
+			case Graphics.Image.ContentMode.Top:
+				if (clipW || clipH) {
+					var clipX, startX;
+
+					if (clipW) {
+						clipX = (iw - w) / 2.0;
+						startX = 0.0;
+					} else {
+						clipX = 0.0;
+						startX = (w - iw) / 2.0;
+					}
+
+					context.drawImage(this.sprite, clipX, 0.0, minW, minH, startX, 0.0, minW, minH);
+				} else {
+					context.drawImage(this.sprite, (w - iw) / 2.0, 0.0);
+				}
+				break;
+
+			case Graphics.Image.ContentMode.Left:
+				if (clipW || clipH) {
+					var clipY, startY;
+
+					if (clipH) {
+						clipY = (ih - h) / 2.0;
+						startY = 0.0;
+					} else {
+						clipY = 0.0;
+						startY = (h - ih) / 2.0;
+					}
+
+					context.drawImage(this.sprite, 0.0, clipY, minW, minH, 0.0, startY, minW, minH);
+				} else {
+					context.drawImage(this.sprite, 0.0, (h - ih) / 2.0);
+				}
+				break;
+
+			case Graphics.Image.ContentMode.Bottom:
+				if (clipW || clipH) {
+					var clipX, clipY, startX, startY;
+
+					if (clipW) {
+						clipX = (iw - w) / 2.0;
+						startX = 0.0;
+					} else {
+						clipX = 0.0;
+						startX = (w - iw) / 2.0;
+					}
+
+					if (clipH) {
+						clipY = ih - h;
+						startY = 0.0;
+					} else {
+						clipY = 0.0;
+						startY = h - ih;
+					}
+					
+					context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+				} else {
+					context.drawImage(this.sprite, (w - iw) / 2.0, h - ih);
+				}
+				break;
+
+			case Graphics.Image.ContentMode.Right:
+				if (clipW || clipH) {
+					var clipX, clipY, startX, startY;
+
+					if (clipW) {
+						clipX = iw - w;
+						startX = 0.0;
+					} else {
+						clipX = 0.0;
+						startX = w - iw;
+					}
+
+					if (clipH) {
+						clipY = (ih - h) / 2.0;
+						startY = 0.0;
+					} else {
+						clipY = 0.0;
+						startY = (h - ih) / 2.0;
+					}
+
+					context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+				} else {
+					context.drawImage(this.sprite, w - iw, (h - ih) / 2.0);
+				}
+				break;
+
+			case Graphics.Image.ContentMode.TopLeft:
+				context.drawImage(this.sprite, 0.0, 0.0, minW, minH, 0.0, 0.0, minW, minH);
+				break;
+
+			case Graphics.Image.ContentMode.TopRight:
 				var clipX, startX;
-
-				if (clipW) {
-					clipX = (iw - w) / 2.0;
-					startX = 0.0;
-				} else {
-					clipX = 0.0;
-					startX = (w - iw) / 2.0;
-				}
-
-				context.drawImage(this.sprite, clipX, 0.0, minW, minH, startX, 0.0, minW, minH);
-			} else {
-				context.drawImage(this.sprite, (w - iw) / 2.0, 0.0);
-			}
-			break;
-
-		case Graphics.Image.ContentMode.Left:
-			if (clipW || clipH) {
-				var clipY, startY;
-
-				if (clipH) {
-					clipY = (ih - h) / 2.0;
-					startY = 0.0;
-				} else {
-					clipY = 0.0;
-					startY = (h - ih) / 2.0;
-				}
-
-				context.drawImage(this.sprite, 0.0, clipY, minW, minH, 0.0, startY, minW, minH);
-			} else {
-				context.drawImage(this.sprite, 0.0, (h - ih) / 2.0);
-			}
-			break;
-
-		case Graphics.Image.ContentMode.Bottom:
-			if (clipW || clipH) {
-				var clipX, clipY, startX, startY;
-
-				if (clipW) {
-					clipX = (iw - w) / 2.0;
-					startX = 0.0;
-				} else {
-					clipX = 0.0;
-					startX = (w - iw) / 2.0;
-				}
-
-				if (clipH) {
-					clipY = ih - h;
-					startY = 0.0;
-				} else {
-					clipY = 0.0;
-					startY = h - ih;
-				}
-				
-				context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
-			} else {
-				context.drawImage(this.sprite, (w - iw) / 2.0, h - ih);
-			}
-			break;
-
-		case Graphics.Image.ContentMode.Right:
-			if (clipW || clipH) {
-				var clipX, clipY, startX, startY;
 
 				if (clipW) {
 					clipX = iw - w;
@@ -1008,157 +1039,137 @@ SRA.Entity.prototype._drawSpriteRespectingContentMode = function (context) {
 					startX = w - iw;
 				}
 
+				context.drawImage(this.sprite, clipX, 0.0, minW, minH, startX, 0.0, minW, minH);
+				break;
+
+			case Graphics.Image.ContentMode.BottomLeft:
+				var clipY, startY;
+
 				if (clipH) {
-					clipY = (ih - h) / 2.0;
+					clipY = ih - h;
 					startY = 0.0;
 				} else {
 					clipY = 0.0;
-					startY = (h - ih) / 2.0;
+					startY = h - ih;
+				}
+
+				context.drawImage(this.sprite, 0.0, clipY, minW, minH, 0.0, startY, minW, minH);
+				break;
+
+			case Graphics.Image.ContentMode.BottomRight:
+				var clipX, clipY, startX, startY;
+
+				if (clipW) {
+					clipX = iw - w;
+					startX = 0.0;
+				} else {
+					clipX = 0.0;
+					startX = w - iw;
+				} 
+
+				if (clipH) {
+					clipY = ih - h;
+					startY = 0.0;
+				} else {
+					clipY = 0.0;
+					startY = h - ih;
 				}
 
 				context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
-			} else {
-				context.drawImage(this.sprite, w - iw, (h - ih) / 2.0);
-			}
-			break;
-
-		case Graphics.Image.ContentMode.TopLeft:
-			context.drawImage(this.sprite, 0.0, 0.0, minW, minH, 0.0, 0.0, minW, minH);
-			break;
-
-		case Graphics.Image.ContentMode.TopRight:
-			var clipX, startX;
-
-			if (clipW) {
-				clipX = iw - w;
-				startX = 0.0;
-			} else {
-				clipX = 0.0;
-				startX = w - iw;
-			}
-
-			context.drawImage(this.sprite, clipX, 0.0, minW, minH, startX, 0.0, minW, minH);
-			break;
-
-		case Graphics.Image.ContentMode.BottomLeft:
-			var clipY, startY;
-
-			if (clipH) {
-				clipY = ih - h;
-				startY = 0.0;
-			} else {
-				clipY = 0.0;
-				startY = h - ih;
-			}
-
-			context.drawImage(this.sprite, 0.0, clipY, minW, minH, 0.0, startY, minW, minH);
-			break;
-
-		case Graphics.Image.ContentMode.BottomRight:
-			var clipX, clipY, startX, startY;
-
-			if (clipW) {
-				clipX = iw - w;
-				startX = 0.0;
-			} else {
-				clipX = 0.0;
-				startX = w - iw;
-			} 
-
-			if (clipH) {
-				clipY = ih - h;
-				startY = 0.0;
-			} else {
-				clipY = 0.0;
-				startY = h - ih;
-			}
-
-			context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
-			break;
-	}
-}
-
-SRA.Entity.prototype._hit = function (context) {
-	if (!this.visible || this.opacity <= 0.0) {
-		return;
-	}
-
-	this._applyTransform(context);
-
-	var childrenCount = this.children.length;
-
-	if (!childrenCount) {
-		this.draw(context);
-	} else {
-		if (this._childrenNeedSorting) {
-			this._childrenNeedSorting = false;
-			this._sortChildrenByZOrder();
-		}		
-
-		var i = 0;
-
-		for (; i < childrenCount; i++) {
-			var child = this.children[i];
-
-			if (child.zOrder < 0) {
-				child._hit(context);
-			} else {
 				break;
+		}
+	},
+
+	_hit: function (context) {
+		if (!this.visible || this.opacity <= 0.0) {
+			return;
+		}
+
+		this._applyTransform(context);
+
+		var childrenCount = this.children.length;
+
+		if (!childrenCount) {
+			this.draw(context);
+		} else {
+			if (this._childrenNeedSorting) {
+				this._childrenNeedSorting = false;
+				this._sortChildrenByZOrder();
+			}		
+
+			var i = 0;
+
+			for (; i < childrenCount; i++) {
+				var child = this.children[i];
+
+				if (child.zOrder < 0) {
+					child._hit(context);
+				} else {
+					break;
+				}
+			}
+
+			this.draw(context);
+
+			for (; i < childrenCount; i++) {
+				var child = this.children[i];
+				child._hit(context);
 			}
 		}
 
-		this.draw(context);
+		this._removeTransform(context);
+	},
 
-		for (; i < childrenCount; i++) {
-			var child = this.children[i];
-			child._hit(context);
+	_applyTransform: function (context) {
+		context.save();
+
+		var rotate = this.rotation != 0.0;
+		var scale = this.scale.x != 1.0 || this.scale.y != 1.0;
+
+		if (rotate || scale) {
+			// Rotation and scaling needs to be done relative to the position
+			var position = this.getPosition();
+			var xDiff = position.x - this.rect.origin.x;
+			var yDiff = position.y - this.rect.origin.y;
+
+			context.translate(position.x, position.y);
+
+			if (rotate) {
+				context.rotate(this.rotation);	
+			}
+
+			if (scale) {
+				context.scale(this.scale.x, this.scale.y);
+			}
+					
+			context.translate(-xDiff, -yDiff);
+		} else {
+			context.translate(this.rect.origin.x, this.rect.origin.y);
 		}
+	},
+
+	_removeTransform: function (context) {
+		context.restore();
+	},
+
+	_sortChildrenByZOrder: function () {
+		this.children.sort(function (a, b) {
+			return a.zOrder - b.zOrder;
+		});
 	}
+};
 
-	this._removeTransform(context);
+SRA.Entity = function () {
+	this._init();
 }
 
-SRA.Entity.prototype._applyTransform = function (context) {
-	context.save();
+SRA.Entity.prototype = Object.create(SRA.BaseEntity);
 
-	var rotate = this.rotation != 0.0;
-	var scale = this.scale.x != 1.0 || this.scale.y != 1.0;
-
-	if (rotate || scale) {
-		// Rotation and scaling needs to be done relative to the position
-		var position = this.getPosition();
-		var xDiff = position.x - this.rect.origin.x;
-		var yDiff = position.y - this.rect.origin.y;
-
-		context.translate(position.x, position.y);
-
-		if (rotate) {
-			context.rotate(this.rotation);	
-		}
-
-		if (scale) {
-			context.scale(this.scale.x, this.scale.y);
-		}
-				
-		context.translate(-xDiff, -yDiff);
-	} else {
-		context.translate(this.rect.origin.x, this.rect.origin.y);
-	}
+SRA.Scene = function () {
+	this._init();
 }
 
-SRA.Entity.prototype._removeTransform = function (context) {
-	context.restore();
-}
-
-SRA.Entity.prototype._sortChildrenByZOrder = function () {
-	this.children.sort(function (a, b) {
-		return a.zOrder - b.zOrder;
-	});
-}
-
-SRA.Scene = function () {}
-
-SRA.Scene.prototype = new SRA.Entity();
+SRA.Scene.prototype = Object.create(SRA.BaseEntity);
 
 /**
   * Credits for the following bezier easing implementation go to Gaëtan Renaudeau
