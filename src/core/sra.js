@@ -388,6 +388,16 @@ Geometry.Size = function (width, height) {
 	this.height = height;
 }
 
+Geometry.Size.prototype.set = function (width, height) {
+	this.width = width;
+	this.height = height;
+}
+
+Geometry.Size.prototype.setSize = function (size) {
+	this.width = size.width;
+	this.height = size.height;
+}
+
 // modifies fields
 Geometry.Size.prototype.add = function (size) {
 	this.width += size.width;
