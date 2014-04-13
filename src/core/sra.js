@@ -459,6 +459,15 @@ Geometry.Rect.prototype.isXYPointInside = function (x, y) {
 	return x >= tx && y >= ty && x <= tx + this.size.width && y <= ty + this.size.height;	
 }
 
+Geometry.Rect.prototype.intersectsWithRect = function (rect) {
+	var xOverlap = 	(this.origin.x >= rect.origin.x && this.origin.x <= rect.getMaxX()) || 
+					(rect.origin.x >= this.origin.x && rect.origin.x <= this.getMaxX());
+	var yOverlap = 	(this.origin.y >= rect.origin.y && this.origin.y <= rect.getMaxY()) ||
+					(rect.origin.y >= this.origin.y && rect.origin.y <= this.getMaxY());
+
+	return xOverlap && yOverlap;
+}
+
 Geometry.Rect.prototype.getMaxX = function () {
 	return this.origin.x + this.size.width;
 }
