@@ -431,6 +431,20 @@ Geometry.Rect = function(origin, size) {
 	this.size = size.clone();
 }
 
+Geometry.Rect.prototype.set = function (x, y, width, height) {
+	this.origin.x = x;
+	this.origin.y = y;
+	this.size.width = width;
+	this.size.height = height;
+}
+
+Geometry.Rect.prototype.setRect = function (rect) {
+	this.origin.x = rect.origin.x;
+	this.origin.y = rect.origin.y;
+	this.size.width = rect.size.width;
+	this.size.height = rect.size.height;
+}
+
 Geometry.Rect.prototype.clone = function () {
 	return new Geometry.Rect(this.origin, this.size);
 }
