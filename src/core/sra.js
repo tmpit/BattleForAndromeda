@@ -24,6 +24,17 @@ Geometry.Vector2 = function (x, y) {
 Geometry.Vector2.Zero = new Geometry.Vector2(0.0, 0.0);
 
 // modifies fields
+Geometry.Vector2.prototype.set = function (x, y) {
+	this.x = x;
+	this.y = y;
+}
+
+Geometry.Vector2.prototype.setVector = function (vector) {
+	this.x = vector.x;
+	this.y = vector.y;
+}
+
+// modifies fields
 Geometry.Vector2.prototype.add = function (vector) {
 	this.x += vector.x;
 	this.y += vector.y;
@@ -871,14 +882,14 @@ SRA.BaseEntity = {
 
 	removeAllChildren: function () {
 		var children = this.children;
-		var length = this._children.length;
+		var length = children.length;
 
 		for (var i = 0; i < length; i++) {
 			children[i]._parent = null;
 		}
 
 		children.splice(0, length);
-	}
+	},
 
 	removeFromParent: function () {
 		if (!this._parent) {
