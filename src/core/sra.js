@@ -13,6 +13,10 @@ var Geometry = {
 
 	radiansToDegrees: function (radians) {
 		return radians / this._DEG2RAD;
+	},
+
+	isFloatEqualToFloat: function (f1, f2) {
+		return Math.abs(f1 - f2) <= this._PRECISION;
 	}
 };
 
@@ -955,7 +959,7 @@ SRA.BaseEntity = {
 		SRA.Controller.getSharedInstance().getActionManager().addAction(action, this);
 	},
 
-	draw: function (context) {
+	_draw: function (context) {
 		context.save();
 
 		context.globalAlpha = this.opacity;
@@ -969,7 +973,23 @@ SRA.BaseEntity = {
 			this._drawSpriteRespectingContentMode(context);
 		}
 
+		if (this._drawMajor) {
+			this._drawMajor(context);
+		}
+
+		if (this.draw) {
+			this.draw(context);
+		}
+
 		context.restore();
+	},
+
+	_drawMajor: function (context) {
+		// Subclass custom drawing
+	},
+
+	draw: function (context) {
+		// Client custom drawing
 	},
 
 	_drawSpriteRespectingContentMode: function (context) {
@@ -1163,7 +1183,7 @@ SRA.BaseEntity = {
 		var childrenCount = this.children.length;
 
 		if (!childrenCount) {
-			this.draw(context);
+			this._draw(context);
 		} else {
 			if (this._childrenNeedSorting) {
 				this._childrenNeedSorting = false;
@@ -1182,7 +1202,7 @@ SRA.BaseEntity = {
 				}
 			}
 
-			this.draw(context);
+			this._draw(context);
 
 			for (; i < childrenCount; i++) {
 				var child = this.children[i];
@@ -1237,6 +1257,75 @@ SRA.Entity = function () {
 }
 
 SRA.Entity.prototype = Object.create(SRA.BaseEntity);
+
+SRA.TileEntity = function (images) {
+	this._init();
+	this._images = images = images.slice();
+	this._numberOfRows = images.length;
+	this._numberOfColumns = images[0].length;
+	this._contentOffset = Geometry.Vector2.Zero.clone();
+
+	var image = images[0][0];
+	this._imageSize = new Geometry.Size(image.width, image.height);
+}
+
+SRA.TileEntity.prototype = Object.create(SRA.BaseEntity);
+
+SRA.TileEntity.prototype.setContentOffset = function (contentOffset) {
+	this._contentOffset = contentOffset.clone();
+}
+
+SRA.TileEntity.prototype.getContentOffset = function () {
+	return this._contentOffset.clone();
+}
+
+SRA.TileEntity.prototype._drawMajor = function (context) {
+	var w = this._imageSize.width;
+	var h = this._imageSize.height;
+	var contentOffset = this._contentOffset;
+	var colIndex = Math.floor(contentOffset.x / w);
+	var rowIndex = Math.floor(contentOffset.y / h);
+	var startX = (colIndex * w) - contentOffset.x;
+	var startY = (rowIndex * h) - contentOffset.y;
+	var numRows = this._numberOfRows;
+	var numCols = this._numberOfColumns;
+	colIndex %= numCols;
+	rowIndex %= numRows;
+
+	if (colIndex < 0) {
+		colIndex += numCols;
+	}
+	if (rowIndex < 0) {
+		rowIndex += numRows;
+	}
+	
+	var maxX = this.rect.getMaxX();
+	var maxY = this.rect.getMaxY();
+	var images = this._images;
+	var x = startX, y = startY;
+	var ci = colIndex, ri = rowIndex;
+
+	while (y < maxY) {
+		while (x < maxX) {
+			var image = images[ri][ci];
+			context.drawImage(image, x, y);
+
+			x += w;
+
+			if (++ci == numCols) {
+				ci = 0;
+			}
+		}
+
+		x = startX;
+		y += h;
+		ci = colIndex;
+
+		if (++ri == numRows) {
+			ri = 0;
+		}
+	}			
+}
 
 SRA.Scene = function () {
 	this._init();
