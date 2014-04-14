@@ -46,7 +46,7 @@
 						origin.x = (origin.x + ver.x) / 2.0;
 						origin.y = (origin.y + ver.y) / 2.0;	
 					}
-				}				
+				}
 
 				if (origin) {
 					space.rect.origin = origin;
@@ -84,6 +84,42 @@
 			controller.scheduleUpdate(ship, update);
 		}
 
+		function addTiledBackground() {
+			var controller = getGameController();
+			var canvasSize = controller.canvas.getSize();
+			var images = [
+				[cache.imageForKey('space_tl.jpg'), cache.imageForKey('space_tr.jpg')],
+				[cache.imageForKey('space_bl.jpg'), cache.imageForKey('space_br.jpg')]
+			];
+
+			var tile = new SRA.TileEntity(images);
+			tile.backgroundColor = null;
+			tile.rect.size = canvasSize;
+
+			controller.scheduleUpdate(window, function (delta) {
+				var k = observer.keyboard;
+				var verticalOffset = 200.0 * delta;
+				var horizontalOffset = 200.0 * delta;
+				var offset = tile.getContentOffset();
+
+				if (k.W) {
+					offset.y -= verticalOffset;
+				} else if (k.S) {
+					offset.y += verticalOffset;
+				}
+
+				if (k.A) {
+					offset.x -= horizontalOffset;
+				} else if (k.D) {
+					offset.x += horizontalOffset;
+				}
+
+				tile.setContentOffset(offset);
+			});
+
+			controller.getTopScene().addChild(tile);
+		}
+
 		function startGame() {
 			var canvas = document.getElementsByTagName('canvas')[0];
 			var controller = SRA.Controller.getSharedInstance();
@@ -104,8 +140,9 @@
 				return controller;
 			}
 
-			addBackground();
-			addSpaceShip();
+			addTiledBackground();
+			// addBackground();
+			// addSpaceShip();
 		}
 
 		var imagePaths = ['ship1.png', 'ship2.png', 'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg'];
@@ -117,7 +154,7 @@
 	</script>
 </head>
 <body>
-	<canvas width="600" height="400">
+	<canvas width="640" height="480">
 	</canvas>
 </body>
 </html>
