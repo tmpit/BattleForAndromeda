@@ -1671,7 +1671,7 @@ SRA.MoveToAction.prototype.begin = function () {
 }
 
 SRA.MoveToAction.prototype.step = function (progress) {
-	var step = this._delta.multiply(progress);
+	var step = this._delta.times(progress);
 	this._target.rect.origin = this._from.plus(step);
 }
 
@@ -1687,7 +1687,7 @@ SRA.MoveByAction.prototype.begin = function () {
 }
 
 SRA.MoveByAction.prototype.step = function (progress) {
-	var step = this._delta.multiply(progress);
+	var step = this._delta.times(progress);
 	this._target.rect.origin = this._from.plus(step);
 }
 
@@ -1737,7 +1737,7 @@ SRA.ScaleToAction.prototype.begin = function () {
 }
 
 SRA.ScaleToAction.prototype.step = function (progress) {
-	var step = this._delta.multiply(progress);
+	var step = this._delta.times(progress);
 	this._target.scale = this._from.plus(step);
 }
 
@@ -1753,7 +1753,7 @@ SRA.ScaleByAction.prototype.begin = function () {
 }
 
 SRA.ScaleByAction.prototype.step = function (progress) {
-	var step = this._delta.multiply(progress);
+	var step = this._delta.times(progress);
 	this._target.scale = this._from.plus(step);
 }
 
