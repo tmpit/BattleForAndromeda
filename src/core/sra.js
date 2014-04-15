@@ -121,7 +121,11 @@ Geometry.Vector2.prototype.isOppositeTo = function (vector) {
 	return Math.abs(angle - Math.PI) <= Geometry._PRECISION;
 }
 
-Geometry.Vector2.prototype.rotated90Clockwise = function () {
+Geometry.Vector2.prototype.rotated90Degrees = function (clockwise) {
+	if (clockwise) {
+		return new Geometry.Vector2(this.y, -this.x);
+	}
+
 	return new Geometry.Vector2(-this.y, this.x);
 }
 
