@@ -61,7 +61,7 @@ Geometry.Vector2.prototype.minus = function (vector) {
 }
 
 Geometry.Vector2.prototype.dot = function (vector) {
-	return (this.x * vector.x ) + (this.y * vector.y);
+	return (this.x * vector.x) + (this.y * vector.y);
 }
 
 Geometry.Vector2.prototype.magnitude = function () {
@@ -148,7 +148,14 @@ Geometry.Vector2.prototype.map = function (func) {
 	return new Geometry.Vector2(func(this.x), func(this.y));
 }
 
+// modifies fields
 Geometry.Vector2.prototype.multiply = function (num) {
+	this.x *= num;
+	this.y *= num;
+	return this;
+}
+
+Geometry.Vector2.prototype.times = function (num) {
 	return new Geometry.Vector2(this.x * num, this.y * num);
 }
 
