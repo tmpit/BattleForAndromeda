@@ -7,56 +7,6 @@
 		var observer;
 		var ship;
 
-		function addBackground() {
-			var space = new SRA.Entity();
-			space.sprite = cache.imageForKey('space.jpg');
-			space.rect.size = new Geometry.Size(space.sprite.width, space.sprite.height);
-			space.contentMode = Graphics.Image.ContentMode.Center;
-			getGameController().getTopScene().addChild(space);
-
-			var getStep = function (offset) {
-				var direction = observer.mouse.getPosition().minus(ship.getPosition()).normalize();
-				return direction.multiply(offset);
-			}
-
-			var update = function (delta) {
-				var k = observer.keyboard;
-				var verticalOffset = 200.0 * delta;
-				var horizontalOffset = 200.0 * delta;
-				var hor = null, ver = null, origin;
-
-				if (k.W) {
-					hor = space.rect.origin.minus(getStep(verticalOffset));
-				} else if (k.S) {
-					hor = space.rect.origin.plus(getStep(verticalOffset));
-				}
-
-				origin = hor;
-
-				if (k.A) {
-					ver = space.rect.origin.plus(getStep(horizontalOffset).rotated90Clockwise());
-				} else if (k.D) {
-					ver = space.rect.origin.minus(getStep(horizontalOffset).rotated90Clockwise());
-				}
-
-				if (ver) {
-					if (!origin) {
-						origin = ver;
-					} else {
-						origin.x = (origin.x + ver.x) / 2.0;
-						origin.y = (origin.y + ver.y) / 2.0;	
-					}
-				}
-
-				if (origin) {
-					space.rect.origin = origin;
-				}
-			}
-
-			space.update = update;
-			getGameController().scheduleUpdate(space, update);
-		}
-
 		function addSpaceShip() {
 			var controller = getGameController();
 			var canvasSize = controller.canvas.getSize();
@@ -84,7 +34,7 @@
 			controller.scheduleUpdate(ship, update);
 		}
 
-		function addTiledBackground() {
+		function addBackground() {
 			var controller = getGameController();
 			var canvasSize = controller.canvas.getSize();
 			var images = [
@@ -96,25 +46,44 @@
 			tile.backgroundColor = null;
 			tile.rect.size = canvasSize;
 
+			function calculateDirection(opposite) {
+				if (opposite) {
+					return ship.getPosition().minus(observer.mouse.getPosition()).normalize();
+				}
+
+				return observer.mouse.getPosition().minus(ship.getPosition()).normalize();
+			}
+
 			controller.scheduleUpdate(window, function (delta) {
 				var k = observer.keyboard;
-				var verticalOffset = 200.0 * delta;
-				var horizontalOffset = 200.0 * delta;
-				var offset = tile.getContentOffset();
+				var hor = null, ver = null, offset;
 
 				if (k.W) {
-					offset.y -= verticalOffset;
+					hor = calculateDirection(false);
 				} else if (k.S) {
-					offset.y += verticalOffset;
+					hor = calculateDirection(true);
 				}
+
+				offset = hor;
 
 				if (k.A) {
-					offset.x -= horizontalOffset;
+					ver = calculateDirection(false).rotated90Degrees(true);
 				} else if (k.D) {
-					offset.x += horizontalOffset;
+					ver = calculateDirection(false).rotated90Degrees(false);
 				}
 
-				tile.setContentOffset(offset);
+				if (ver) {
+					if (!offset) {
+						offset = ver;
+					} else {
+						offset.add(ver).normalize();
+					}
+				}
+
+				if (offset) {
+					offset.multiply(200.0 * delta);
+					tile.setContentOffset(tile.getContentOffset().add(offset));
+				}
 			});
 
 			controller.getTopScene().addChild(tile);
@@ -140,9 +109,8 @@
 				return controller;
 			}
 
-			addTiledBackground();
-			// addBackground();
-			// addSpaceShip();
+			addBackground();
+			addSpaceShip();
 		}
 
 		var imagePaths = ['ship1.png', 'ship2.png', 'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg'];
