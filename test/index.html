@@ -27,9 +27,11 @@
 			ship.addAction(repeat);
 
 			var update = function (delta) {
-				var angle = observer.mouse.getPosition().minus(ship.getPosition()).angleFromXAxis();
-				angle += Math.PI / 2.0; // shift angle so it's as if it's relative to the Y axis
-				ship.rotation = angle;
+				if (observer.mousePosition) {
+					var angle = observer.mousePosition.minus(ship.getPosition()).angleFromXAxis();
+					angle += Math.PI / 2.0; // shift angle so it's as if it's relative to the Y axis
+					ship.rotation = angle;
+				}
 			}
 
 			ship.update = update;
@@ -50,14 +52,14 @@
 
 			function calculateDirection(opposite) {
 				if (opposite) {
-					return ship.getPosition().minus(observer.mouse.getPosition()).normalize();
+					return ship.getPosition().minus(observer.mousePosition).normalize();
 				}
 
-				return observer.mouse.getPosition().minus(ship.getPosition()).normalize();
+				return observer.mousePosition.minus(ship.getPosition()).normalize();
 			}
 
 			controller.scheduleUpdate(window, function (delta) {
-				var k = observer.keyboard;
+				var k = observer.keys;
 				var hor = null, ver = null, offset;
 
 				if (k.W) {
@@ -104,7 +106,7 @@
 			controller.run();
 
 			observer = new Input.EventObserver();
-			observer.startObservingKeyEvents();
+			observer.startObservingKeyboardEvents();
 			observer.startObservingMouseEvents(canvas);
 
 			window.getGameController = function () {
