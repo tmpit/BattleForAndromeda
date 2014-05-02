@@ -129,40 +129,16 @@ Graphics.Canvas.prototype.getSize = function () {
 // ----------------------------------------------------------------------------
 var Input = {};
 
-Input.Keyboard = function () {
-}
-
-Input.Mouse = function () {
-	this.leftButton = false;
-	this.rightButton = false;
-
-	this.position = Geometry.Vector2.Zero.clone();
-	this.delta = null;
-}
-
-Input.EventObserver = function (release) {
+Input.EventObserver = function () {
 	this._mouseDOMElement = null;
 	this._observingKeyEvents = false;
 	this._observingMouseEvents = false;
-	this._keyboard = new Input.Keyboard();
-	this._mouse = new Input.Mouse();
-	this._lastMousePosition = null;
-	this._release = release;
+	this.keys = {};
+	this.mousePosition = null;
+	this.mouseDelta = Geometry.Vector2.Zero.clone();
 }
 
-Input.EventObserver.prototype.popKeyboard = function () {
-	var keyboard = this._keyboard;
-	this._keyboard = new Input.Keyboard();
-	return keyboard;
-}
-
-Input.EventObserver.prototype.popMouse = function () {
-	var mouse = this._mouse;
-	this._mouse = new Input.Mouse();
-	return mouse;
-}
-
-Input.EventObserver.prototype.startObservingKeyEvents = function () {
+Input.EventObserver.prototype.startObservingKeyboardEvents = function () {
 	if (this._observingKeyEvents) {
 		return;
 	}
@@ -172,28 +148,79 @@ Input.EventObserver.prototype.startObservingKeyEvents = function () {
 
 	window.onkeydown = function (event) {
 		var c = self._charFromKeyCode(event.keyCode);
-		self._keyboard[c] = true;
+		self.keys[c] = true;
 	}
 
-	if (this._release) {
-		window.onkeyup = function (event) {
-			var c = self._charFromKeyCode(event.keyCode);
-			self._keyboard[c] = false;
-		}
+	window.onkeyup = function (event) {
+		var c = self._charFromKeyCode(event.keyCode);
+		self.keys[c] = false;
 	}
 }
 
-Input.EventObserver.prototype.stopObservingKeyEvents = function () {
+Input.EventObserver.prototype.stopObservingKeyboardEvents = function () {
 	if (!this._observingKeyEvents) {
 		return;
 	}
 
 	this._observingKeyEvents = false;
 	window.onkeydown = null;
+	window.onkeyup = null;
+}
 
-	if (this._release) {
-		window.onkeyup = null;
+Input.EventObserver.prototype.startObservingMouseEvents = function (DOMElement) {
+	if (this._observingMouseEvents) {
+		return;
 	}
+
+	this._observingMouseEvents = true;
+	this._mouseDOMElement = DOMElement;
+	var self = this;
+
+	DOMElement.onmousedown = function (event) {
+		if (!event.button) {
+			self.keys.left = true;
+		} else if (2 == event.button) {
+			self.keys.right = true;
+		}
+	}
+
+	DOMElement.onmouseup = function (event) {
+		if (!event.button) {
+			self.keys.left = false;
+		} else if (2 == event.button) {
+			self.keys.right = false;
+		}
+	}
+
+	DOMElement.oncontextmenu = function () {
+		return false;
+	}
+
+	DOMElement.onmousemove = function (event) {
+		var point = self._convertedPointInDOMElementSpace(event.clientX, event.clientY);
+
+		if (self.mousePosition) {
+			self.mouseDelta = point.minus(self.mousePosition);
+		}
+
+		self.mousePosition = point;
+	}
+}
+
+Input.EventObserver.prototype.stopObservingMouseEvents = function () {
+	if (!this._observingMouseEvents) {
+		return;
+	}
+
+	this._observingMouseEvents = false;
+	this._mouseDOMElement.onmousedown = null;
+	this._mouseDOMElement.onmouseup = null;
+	this._mouseDOMElement.onmousemove = null;
+	this._mouseDOMElement.oncontextmenu = function () {
+		return true;
+	}
+
+	this._mouseDOMElement = null;
 }
 
 Input.EventObserver.prototype._charFromKeyCode = function (code) {
@@ -208,69 +235,6 @@ Input.EventObserver.prototype._convertedPointInDOMElementSpace = function (x, y)
 	}
 
 	return new Geometry.Vector2(x, y);
-}
-
-Input.EventObserver.prototype.startObservingMouseEvents = function (DOMElement) {
-	if (this._observingMouseEvents) {
-		return;
-	}
-
-	this._observingMouseEvents = true;
-	this._mouseDOMElement = DOMElement;
-	var self = this;
-
-	DOMElement.onmousedown = function (event) {
-		if (!event.button) {
-			self._mouse.leftButton = true;
-		} else if (2 == event.button) {
-			self._mouse.rightButton = true;
-		}
-	}
-
-	if (this._release) {
-		DOMElement.onmouseup = function (event) {
-			if (!event.button) {
-				self._mouse.leftButton = false;
-			} else if (2 == event.button) {
-				self._mouse.rightButton = false;
-			}
-		}
-	}
-
-	DOMElement.oncontextmenu = function () {
-		return false;
-	}
-
-	DOMElement.onmousemove = function (event) {
-		var point = self._convertedPointInDOMElementSpace(event.clientX, event.clientY);
-		self._mouse.position = point;
-
-		if (self._lastMousePosition) {
-			self._mouse.delta = point.minus(self._lastMousePosition);
-		}
-
-		self._lastMousePosition = point;
-	}
-}
-
-Input.EventObserver.prototype.stopObservingMouseEvents = function () {
-	if (!this._observingMouseEvents) {
-		return;
-	}
-
-	this._observingMouseEvents = false;
-	this._mouseDOMElement.onmousedown = null;
-
-	if (this._release) {
-		this._mouseDOMElement.onmouseup = null;
-	}
-
-	this._mouseDOMElement.onmousemove = null;
-	this._mouseDOMElement.oncontextmenu = function () {
-		return true;
-	}
-
-	this._mouseDOMElement = null;
 }
 
 // ----------------------------------------------------------------------------
