@@ -130,75 +130,36 @@ Graphics.Canvas.prototype.getSize = function () {
 var Input = {};
 
 Input.Keyboard = function () {
-	this.A = false;
-	this.B = false;
-	this.C = false;
-	this.D = false;
-	this.E = false;
-	this.F = false;
-	this.G = false;
-	this.H = false;
-	this.I = false;
-	this.J = false;
-	this.K = false;
-	this.L = false;
-	this.M = false;
-	this.N = false;
-	this.O = false;
-	this.P = false;
-	this.Q = false;
-	this.R = false;
-	this.S = false;
-	this.T = false;
-	this.U = false;
-	this.V = false;
-	this.W = false;
-	this.X = false;
-	this.Y = false;
-	this.Z = false;
-	this['1'] = false;
-	this['2'] = false;
-	this['3'] = false;
-	this['4'] = false;
-	this['5'] = false;
-	this['6'] = false;
-	this['7'] = false;
-	this['8'] = false;
-	this['9'] = false;
-	this['0'] = false;
 }
 
 Input.Mouse = function () {
 	this.leftButton = false;
 	this.rightButton = false;
 
-	this._position = Geometry.Vector2.Zero.clone();
-	this._delta = Geometry.Vector2.Zero.clone();
+	this.position = Geometry.Vector2.Zero.clone();
+	this.delta = null;
 }
 
-Input.Mouse.prototype.setPosition = function (pos) {
-	this._delta.x = pos.x - this._position.x;
-	this._delta.y = pos.y - this._position.y;
-	this._position.x = pos.x;
-	this._position.y = pos.y;
-}
-
-Input.Mouse.prototype.getPosition = function () {
-	return this._position.clone();
-}
-
-Input.Mouse.prototype.popDelta = function () {
-	var delta = this._delta.clone();
-	this._delta.x = this._delta.y = 0.0;
-	return delta;
-}
-
-Input.EventObserver = function () {
+Input.EventObserver = function (release) {
 	this._mouseDOMElement = null;
 	this._observingKeyEvents = false;
 	this._observingMouseEvents = false;
-	this.keyboard = new Input.Keyboard();
-	this.mouse = new Input.Mouse();
+	this._keyboard = new Input.Keyboard();
+	this._mouse = new Input.Mouse();
+	this._lastMousePosition = null;
+	this._release = release;
+}
+
+Input.EventObserver.prototype.popKeyboard = function () {
+	var keyboard = this._keyboard;
+	this._keyboard = new Input.Keyboard();
+	return keyboard;
+}
+
+Input.EventObserver.prototype.popMouse = function () {
+	var mouse = this._mouse;
+	this._mouse = new Input.Mouse();
+	return mouse;
 }
 
 Input.EventObserver.prototype.startObservingKeyEvents = function () {
@@ -211,12 +172,14 @@ Input.EventObserver.prototype.startObservingKeyEvents = function () {
 
 	window.onkeydown = function (event) {
 		var c = self._charFromKeyCode(event.keyCode);
-		self.keyboard[c] = true;
+		self._keyboard[c] = true;
 	}
 
-	window.onkeyup = function (event) {
-		var c = self._charFromKeyCode(event.keyCode);
-		self.keyboard[c] = false;
+	if (this._release) {
+		window.onkeyup = function (event) {
+			var c = self._charFromKeyCode(event.keyCode);
+			self._keyboard[c] = false;
+		}
 	}
 }
 
@@ -226,8 +189,11 @@ Input.EventObserver.prototype.stopObservingKeyEvents = function () {
 	}
 
 	this._observingKeyEvents = false;
-	this._DOMElement.onkeydown = null;
-	this._DOMElement.onkeyup = null;
+	window.onkeydown = null;
+
+	if (this._release) {
+		window.onkeyup = null;
+	}
 }
 
 Input.EventObserver.prototype._charFromKeyCode = function (code) {
@@ -255,17 +221,19 @@ Input.EventObserver.prototype.startObservingMouseEvents = function (DOMElement) 
 
 	DOMElement.onmousedown = function (event) {
 		if (!event.button) {
-			self.mouse.leftButton = true;
+			self._mouse.leftButton = true;
 		} else if (2 == event.button) {
-			self.mouse.rightButton = true;
+			self._mouse.rightButton = true;
 		}
 	}
 
-	DOMElement.onmouseup = function (event) {
-		if (!event.button) {
-			self.mouse.leftButton = false;
-		} else if (2 == event.button) {
-			self.mouse.rightButton = false;
+	if (this._release) {
+		DOMElement.onmouseup = function (event) {
+			if (!event.button) {
+				self._mouse.leftButton = false;
+			} else if (2 == event.button) {
+				self._mouse.rightButton = false;
+			}
 		}
 	}
 
@@ -275,7 +243,13 @@ Input.EventObserver.prototype.startObservingMouseEvents = function (DOMElement) 
 
 	DOMElement.onmousemove = function (event) {
 		var point = self._convertedPointInDOMElementSpace(event.clientX, event.clientY);
-		self.mouse.setPosition(point);
+		self._mouse.position = point;
+
+		if (self._lastMousePosition) {
+			self._mouse.delta = point.minus(self._lastMousePosition);
+		}
+
+		self._lastMousePosition = point;
 	}
 }
 
@@ -286,7 +260,11 @@ Input.EventObserver.prototype.stopObservingMouseEvents = function () {
 
 	this._observingMouseEvents = false;
 	this._mouseDOMElement.onmousedown = null;
-	this._mouseDOMElement.onmouseup = null;
+
+	if (this._release) {
+		this._mouseDOMElement.onmouseup = null;
+	}
+
 	this._mouseDOMElement.onmousemove = null;
 	this._mouseDOMElement.oncontextmenu = function () {
 		return true;
