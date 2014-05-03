@@ -17,7 +17,9 @@ var Graphics = {
 		Cyan: 'rgb(0, 255, 255)',
 
 		random: function () {
-			return 'rgb(' + (Math.random() * 255) + ', ' + (Math.random() * 255) + ', ' + (Math.random() * 255) + ')';
+			return 'rgb(' + Math.round(Math.random() * 255) + ', ' + 
+							Math.round(Math.random() * 255) + ', ' + 
+							Math.round(Math.random() * 255) + ')';
 		}
 	},
 
