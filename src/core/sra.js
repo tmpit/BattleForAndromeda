@@ -1057,6 +1057,39 @@ SRA.MoveByAction.prototype.step = function (progress) {
 	this._target.rect.origin = this._from.plus(step);
 }
 
+SRA.MovePositionToAction = function (toPosition, duration, rate) {
+	this._init(duration, rate);
+	this._to = toPosition;
+}
+
+SRA.MovePositionToAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.MovePositionToAction.prototype.begin = function () {
+	this._from = this._target.getPosition();
+	this._delta = this._to.minus(this._from);
+}
+
+SRA.MovePositionToAction.prototype.step = function (progress) {
+	var step = this._delta.times(progress);
+	this._target.setPosition(this._from.plus(step));
+}
+
+SRA.MovePositionByAction = function (delta, duration, rate) {
+	this._init(duration, rate);
+	this._delta = delta.clone();
+}
+
+SRA.MovePositionByAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.MovePositionByAction.prototype.begin = function () {
+	this._from = this._target.getPosition();
+}
+
+SRA.MovePositionByAction.prototype.step = function (progress) {
+	var step = this._delta.times(progress);
+	this._target.setPosition(this._from.plus(step));	
+}
+
 SRA.RotateToAction = function (angleRadians, duration, rate) {
 	this._init(duration, rate);
 	this._to = angleRadians;
