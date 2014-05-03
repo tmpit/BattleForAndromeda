@@ -3,15 +3,15 @@
 	var DEG2RAD = 0.0174532925;
 
 	Geometry.degreesToRadians = function (degrees) {
-		return degrees * this._DEG2RAD;
+		return degrees * DEG2RAD;
 	};
 
 	Geometry.radiansToDegrees = function (radians) {
-		return radians / this._DEG2RAD;
+		return radians / DEG2RAD;
 	};
 
 	Geometry.isFloatEqualToFloat = function (f1, f2) {
-		return Math.abs(f1 - f2) <= this._PRECISION;
+		return Math.abs(f1 - f2) <= PRECISION;
 	};
 
 	Geometry.Vector2 = function (x, y) {
@@ -94,7 +94,7 @@
 	}
 
 	Geometry.Vector2.prototype.equals = function (vector) {	
-		return Math.abs(this.x - vector.x) <= Geometry._PRECISION && Math.abs(this.y - vector.y) <= Geometry._PRECISION;
+		return Math.abs(this.x - vector.x) <= PRECISION && Math.abs(this.y - vector.y) <= PRECISION;
 	}
 
 	Geometry.Vector2.prototype.toString = function () {
@@ -112,7 +112,7 @@
 			return false;
 		}
 
-		return Math.abs(angle - Math.PI) <= Geometry._PRECISION;
+		return Math.abs(angle - Math.PI) <= PRECISION;
 	}
 
 	Geometry.Vector2.prototype.rotated90Degrees = function (clockwise) {
@@ -130,12 +130,12 @@
 			return false;
 		}
 
-		return angle <= Geometry._PRECISION;
+		return angle <= PRECISION;
 	}
 
 	Geometry.Vector2.prototype.isPerpendicularTo = function (vector) {
 		var dot = this.dot(vector);
-		return Math.abs(dot) <= Geometry._PRECISION;	
+		return Math.abs(dot) <= PRECISION;	
 	}
 
 	Geometry.Vector2.prototype.map = function (func) {
@@ -314,7 +314,7 @@
 	Geometry.Matrix3.prototype.equals = function (matrix) {
 		var m1 = this.elements;
 		var m2 = matrix.elements;
-		var p = Geometry._PRECISION;
+		var p = PRECISION;
 
 		return 	Math.abs(m1[0][0] - m2[0][0]) <= p &&
 				Math.abs(m1[0][1] - m2[0][1]) <= p &&
