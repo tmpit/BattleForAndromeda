@@ -33,10 +33,17 @@
 	}
 
 	// modifies fields
-	Geometry.Vector2.prototype.add = function (vector) {
+	Geometry.Vector2.prototype.add = function (x, y) {
+		this.x += x;
+		this.y += y;
+		return this;
+	}
+
+	// modifies fields
+	Geometry.Vector2.prototype.addVector = function (vector) {
 		this.x += vector.x;
 		this.y += vector.y;
-		return this;
+		return this;	
 	}
 
 	// modifies fields
@@ -187,7 +194,7 @@
 	Geometry.Vector2.prototype.rotateAroundPivot = function (pivot, angleRads) {
 		this.subtract(pivot);
 		this.rotate(angleRads);
-		this.add(pivot);
+		this.addVector(pivot);
 		return this;
 	}
 
@@ -486,4 +493,67 @@
 	}
 
 	Geometry.Rect.Zero = new Geometry.Rect(Geometry.Vector2.Zero, Geometry.Size.Zero);
+
+	Geometry.Polygon2 = function (points) {
+		this.base = points.slice();
+		this.points = new Array(points.length);
+	}
+
+	Geometry.Polygon2.prototype.transform = function (x, y, angleRads) {
+		var base = this.base;
+		var points = this.points;
+		var length = base.length;
+
+		for (var i = 0; i < length; i++) {
+			points[i] = base[i].clone().rotate(angleRads).add(x, y);
+		}
+	}
+
+	Geometry.Polygon2.prototype.projectionOnAxis = function (axis) {
+		var points = this.points;
+		var length = points.length;
+		var min = points[0].dot(axis), max = min;
+
+		for (var i = 1; i < length; i++) {
+			var dot = points[i].dot(axis);
+
+			if (dot < min) {
+				min = dot;
+			} else if (dot > max) {
+				max = dot;
+			}
+		}
+
+		return [min, max];
+	}
+
+	function projectionsIntersect(p1, p2) {
+		return p1[0] <= p2[1] && p2[0] <= p1[1];
+	}
+
+	Geometry.Polygon2.prototype.intersects = function (polygon) {
+		var points = this.points;
+		var length = points.length;
+
+		for (var i = 0, j = length - 1; i < length; j = i++) {
+			var axis = points[i].minus(points[j]).rotated90Degrees();
+
+			if (!projectionsIntersect(this.projectionOnAxis(axis), polygon.projectionOnAxis(axis))) {
+				return false;
+			}
+		}
+
+		points = polygon.points;
+		length = points.length;
+
+		for (var i = 0, j = length - 1; i < length; j = i++) {
+			var axis = points[i].minus(points[j]).rotated90Degrees();
+
+			if (!projectionsIntersect(polygon.projectionOnAxis(axis), this.projectionOnAxis(axis))) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 })(typeof exports === 'undefined' ? this.Geometry = {} : exports);
