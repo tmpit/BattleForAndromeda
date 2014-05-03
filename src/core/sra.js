@@ -14,7 +14,11 @@ var Graphics = {
 		Blue: 'rgb(0, 0, 255)',
 		Yellow: 'rgb(255, 255, 0)',
 		Magenta: 'rgb(255, 0, 255)',
-		Cyan: 'rgb(0, 255, 255)'
+		Cyan: 'rgb(0, 255, 255)',
+
+		random: function () {
+			return 'rgb(' + (Math.random() * 255) + ', ' + (Math.random() * 255) + ', ' + (Math.random() * 255) + ')';
+		}
 	},
 
 	Image: {
