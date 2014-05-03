@@ -80,17 +80,55 @@
 					if (!offset) {
 						offset = ver;
 					} else {
-						offset.add(ver).normalize();
+						offset.addVector(ver).normalize();
 					}
 				}
 
 				if (offset) {
 					offset.multiply(200.0 * delta);
-					tile.setContentOffset(tile.getContentOffset().add(offset));
+					tile.setContentOffset(tile.getContentOffset().addVector(offset));
 				}
 			});
 
 			controller.getTopScene().addChild(tile);
+		}
+
+		function testConcavePolygonCollisionDetection() {
+			var controller = SRA.Controller.getSharedInstance();
+			var mainScene = controller.getTopScene();
+
+			var bg = new SRA.Entity();
+			bg.backgroundColor = "rgb(200, 200, 200)";
+			bg.rect.size = controller.canvas.getSize();
+			mainScene.addChild(bg);
+
+			var square1 = new SRA.Entity();
+			square1.rect.origin.x = 50.0;
+			square1.rect.origin.y = 50.0;
+			square1.rect.size.width = 50.0;
+			square1.rect.size.height = 50.0;
+			square1.rotation = Geometry.degreesToRadians(45.0);
+			var V = Geometry.Vector2;
+			square1.polygon = new Geometry.Polygon2([new V(-25.0, -25.0), new V(25.0, -25.0),new V(25.0, 25.0), new V(-25.0, 25.0)]);
+
+			var p = square1.getPosition();
+			square1.polygon.transform(p.x, p.y, square1.rotation);
+			square1.backgroundColor = Graphics.Color.Red;
+			mainScene.addChild(square1);
+
+			var square2 = new SRA.Entity();
+			square2.rect.origin.x = 115.0;
+			square2.rect.origin.y = 50.0;
+			square2.rect.size.width = 50.0;
+			square2.rect.size.height = 50.0;
+			square2.rotation = Geometry.degreesToRadians(-45.0);
+			square2.polygon = new Geometry.Polygon2([new V(-25.0, -25.0), new V(25.0, -25.0),new V(25.0, 25.0), new V(-25.0, 25.0)]);
+			p = square2.getPosition();
+			square2.polygon.transform(p.x, p.y, square2.rotation);
+			square2.backgroundColor = Graphics.Color.Green;
+			mainScene.addChild(square2);
+
+			console.log(square1.polygon.intersects(square2.polygon));
 		}
 
 		function startGame() {
@@ -115,6 +153,7 @@
 
 			addBackground();
 			addSpaceShip();
+			// testConcavePolygonCollisionDetection();
 		}
 
 		var imagePaths = ['ship1.png', 'ship2.png', 'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg'];
