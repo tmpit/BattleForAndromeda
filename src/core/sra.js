@@ -230,7 +230,13 @@ Input.EventObserver.prototype.stopObservingMouseEvents = function () {
 }
 
 Input.EventObserver.prototype._charFromKeyCode = function (code) {
-	return String.fromCharCode(code);
+	switch (code) {
+		case 37: return 'left';
+		case 38: return 'up';
+		case 39: return 'right';
+		case 40: return 'down';
+		default: return String.fromCharCode(code);
+	}
 }
 
 Input.EventObserver.prototype._convertedPointInDOMElementSpace = function (x, y) {
