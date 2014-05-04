@@ -231,6 +231,9 @@ Input.EventObserver.prototype.stopObservingMouseEvents = function () {
 
 Input.EventObserver.prototype._charFromKeyCode = function (code) {
 	switch (code) {
+		case 16: return 'shift';
+		case 17: return 'ctrl';
+		case 32: return 'space';
 		case 37: return 'left';
 		case 38: return 'up';
 		case 39: return 'right';
