@@ -204,7 +204,7 @@
 			var invocation = new SRA.InvocationAction(function () {
 				var fade = new SRA.FadeToAction(0.0, 2.0, 1.0);
 				this.addAction(fade);
-			}, ship);
+			});
 
 			var sequence = new SRA.ActionSequence([move, invocation]);
 

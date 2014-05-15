@@ -1235,9 +1235,8 @@ SRA.SpriteAction.prototype.step = function (progress) {
 	this._target.sprite = images[index];
 }
 
-SRA.InvocationAction = function (func, target) {
+SRA.InvocationAction = function (func) {
 	this._init(0.0, 1.0);
-	this._target = target || window;
 	this._func = func;
 	this._arguments;
 }
