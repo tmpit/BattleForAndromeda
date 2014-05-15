@@ -173,6 +173,20 @@
 			mainScene.addChild(wrapper);
 		}
 
+		function testScale() {
+			var controller = SRA.Controller.getSharedInstance();
+			var mainScene = controller.getTopScene();
+
+			ship = new SRA.Entity();
+			ship.backgroundColor = null;
+			ship.sprite = cache.imageForKey('ship2.png');
+			ship.rect.origin.x = 20.0;
+			ship.rect.origin.y = 20.0;
+			ship.rect.size = new Geometry.Size(ship.sprite.width - 20.0, ship.sprite.height + 20.0);
+			ship.contentMode = Graphics.Image.ContentMode.Scale;
+			mainScene.addChild(ship);
+		}
+
 		function startGame() {
 			var canvas = document.getElementsByTagName('canvas')[0];
 			var controller = SRA.Controller.getSharedInstance();
@@ -196,7 +210,8 @@
 			// addBackground();
 			// addSpaceShip();
 			// testConcavePolygonCollisionDetection();
-			testAlpha();
+			// testAlpha();
+			testScale();
 		}
 
 		var imagePaths = ['ship1.png', 'ship2.png', 'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg'];
