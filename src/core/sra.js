@@ -812,6 +812,7 @@ SRA.BaseAction = {
 		this._jumpToEnd = false;
 		this._active = true;
 		this._finished = false;
+		this._interrupted = false;
 
 		this.begin();
 	},
@@ -854,6 +855,7 @@ SRA.BaseAction = {
 		}
 		
 		this._finished = true;
+		this._interrupted = interrupt;
 	},
 
 	hasFinished: function () {
@@ -866,6 +868,10 @@ SRA.BaseAction = {
 
 	resume: function () {
 		this._active = true;
+	},
+
+	onComplete: function (finished) {
+
 	}
 };
 
@@ -1258,6 +1264,10 @@ SRA.ActionManager.prototype._hit = function (delta) {
 		action._step(delta);
 
 		if (action.hasFinished()) {
+			if (action.onComplete) {
+				action.onComplete(!action._interrupted);
+			}
+
 			this.removeAction(action);
 			i--;
 			length--;		
