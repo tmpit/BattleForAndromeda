@@ -131,6 +131,48 @@
 			console.log(square1.polygon.intersects(square2.polygon));
 		}
 
+		function testAlpha() {
+			var controller = SRA.Controller.getSharedInstance();
+			var mainScene = controller.getTopScene();
+
+			var wrapper = new SRA.Entity();
+			wrapper.backgroundColor = Graphics.Color.Red;
+			wrapper.rect.origin.x = 100.0;
+			wrapper.rect.origin.y = 100.0;
+			wrapper.rect.size.width = 100.0;
+			wrapper.rect.size.height = 100.0;
+			wrapper.opacity = 0.5;
+			mainScene.addChild(wrapper);
+
+			ship = new SRA.Entity();
+			ship.backgroundColor = null;
+			ship.sprite = cache.imageForKey('ship2.png');
+			ship.rect.origin.x = 20.0;
+			ship.rect.origin.y = 20.0;
+			ship.rect.size = new Geometry.Size(ship.sprite.width, ship.sprite.height);
+			ship.contentMode = Graphics.Image.ContentMode.Top;
+			ship.opacity = 0.4;
+			wrapper.addChild(ship);
+
+			var small = new SRA.Entity();
+			small.backgroundColor = Graphics.Color.Blue;
+			small.rect.origin.x = 10.0;
+			small.rect.origin.y = 10.0;
+			small.rect.size.width = 10.0;
+			small.rect.size.height = 10.0;
+			small.opacity = 0.5;
+			ship.addChild(small);
+
+			wrapper = new SRA.Entity();
+			wrapper.backgroundColor = Graphics.Color.Red;
+			wrapper.rect.origin.x = 300.0;
+			wrapper.rect.origin.y = 100.0;
+			wrapper.rect.size.width = 100.0;
+			wrapper.rect.size.height = 100.0;
+			wrapper.opacity = 1.0;
+			mainScene.addChild(wrapper);
+		}
+
 		function startGame() {
 			var canvas = document.getElementsByTagName('canvas')[0];
 			var controller = SRA.Controller.getSharedInstance();
@@ -151,9 +193,10 @@
 				return controller;
 			}
 
-			addBackground();
-			addSpaceShip();
+			// addBackground();
+			// addSpaceShip();
 			// testConcavePolygonCollisionDetection();
+			testAlpha();
 		}
 
 		var imagePaths = ['ship1.png', 'ship2.png', 'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg'];
