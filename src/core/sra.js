@@ -354,8 +354,6 @@ SRA.BaseEntity = {
 	_draw: function (context) {
 		context.save();
 
-		context.globalAlpha = this.opacity;
-
 		if (this.backgroundColor) {
 			context.fillStyle = this.backgroundColor;
 			context.fillRect(0.0, 0.0, this.rect.size.width, this.rect.size.height);
@@ -572,6 +570,9 @@ SRA.BaseEntity = {
 
 		this._applyTransform(context);
 
+		var oldAlpha = context.globalAlpha;
+		context.globalAlpha *= this.opacity;
+
 		var childrenCount = this.children.length;
 
 		if (!childrenCount) {
@@ -603,6 +604,7 @@ SRA.BaseEntity = {
 		}
 
 		this._removeTransform(context);
+		context.globalAlpha = oldAlpha;
 	},
 
 	_applyTransform: function (context) {
