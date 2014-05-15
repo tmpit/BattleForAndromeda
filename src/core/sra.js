@@ -875,10 +875,6 @@ SRA.BaseAction = {
 
 	resume: function () {
 		this._active = true;
-	},
-
-	onComplete: function (finished) {
-
 	}
 };
 
@@ -1239,6 +1235,19 @@ SRA.SpriteAction.prototype.step = function (progress) {
 	this._target.sprite = images[index];
 }
 
+SRA.InvocationAction = function (func, target) {
+	this._init(0.0, 1.0);
+	this._target = target || window;
+	this._func = func;
+	this._arguments;
+}
+
+SRA.InvocationAction.prototype = Object.create(SRA.BaseAction);
+
+SRA.InvocationAction.prototype.step = function (progress) {
+	this._func.apply(this._target);
+}
+
 SRA.ActionManager = function () {
 	this._actions = [];
 }
@@ -1271,10 +1280,6 @@ SRA.ActionManager.prototype._hit = function (delta) {
 		action._step(delta);
 
 		if (action.hasFinished()) {
-			if (action.onComplete) {
-				action.onComplete(!action._interrupted);
-			}
-
 			this.removeAction(action);
 			i--;
 			length--;		
