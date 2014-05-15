@@ -33,7 +33,8 @@ var Graphics = {
 			TopLeft: 5,
 			TopRight: 6,
 			BottomLeft: 7,
-			BottomRight: 8
+			BottomRight: 8,
+			Scale: 9
 		}
 	}
 };
@@ -559,6 +560,10 @@ SRA.BaseEntity = {
 				}
 
 				context.drawImage(this.sprite, clipX, clipY, minW, minH, startX, startY, minW, minH);
+				break;
+
+			case Graphics.Image.ContentMode.Scale:
+				context.drawImage(this.sprite, 0.0, 0.0, w, h);
 				break;
 		}
 	},
