@@ -819,7 +819,6 @@ SRA.BaseAction = {
 		this._jumpToEnd = false;
 		this._active = true;
 		this._finished = false;
-		this._interrupted = false;
 
 		this.begin();
 	},
@@ -862,7 +861,6 @@ SRA.BaseAction = {
 		}
 		
 		this._finished = true;
-		this._interrupted = interrupt;
 	},
 
 	hasFinished: function () {
